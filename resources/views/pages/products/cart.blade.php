@@ -32,7 +32,7 @@
                     </div>
 
                     <!-- Proceed to Checkout Button -->
-                    <a href="{{ route('checkout') }}"
+                    <a href="{{ route('checkout.index') }}"
                         class="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-2">
                         <i class="fas fa-shopping-cart"></i> Proceed to Checkout
                     </a>

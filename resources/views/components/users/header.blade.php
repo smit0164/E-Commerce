@@ -41,18 +41,6 @@
 
             <!-- User Actions -->
             <nav class="flex items-center gap-6" aria-label="User navigation">
-                <!-- Wishlist -->
-                <a href="#"
-                    class="group text-gray-700 hover:text-primary transition-colors relative flex flex-col items-center">
-                    <div class="text-xl">
-                        <i class="fa-regular fa-heart group-hover:scale-110 transition-transform"></i>
-                    </div>
-                    <span class="text-[10px] mt-0.5">Wishlist</span>
-                    <span
-                        class="absolute -right-2 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center bg-primary text-white text-[9px]">
-                        8
-                    </span>
-                </a>
 
                 <!-- Cart -->
                 <a href="/cart"

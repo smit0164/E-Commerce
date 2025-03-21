@@ -27,13 +27,18 @@ Route::middleware("guest:customer")->group(function () {
     Route::post('login', [CustomerAuthController::class, 'login']);
 });
 Route::middleware("auth:customer")->group(function () {
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add', [CartController::class, 'addCart'])->name('cart.add');
-    Route::post('/cart/update', [CartController::class, 'updateCart'])->name('cart.update');
-    Route::post('/cart/remove', [CartController::class, 'removeFromCart'])->name('cart.remove');
-
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/add', [CartController::class, 'addCart'])->name('add');
+        Route::post('/update', [CartController::class, 'updateCart'])->name('update');
+        Route::post('/remove', [CartController::class, 'removeFromCart'])->name('remove');
+    });
+    
+    Route::prefix('checkout')->name('checkout.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/', [CheckoutController::class, 'store'])->name('store');
+    });
+    
     Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });
 

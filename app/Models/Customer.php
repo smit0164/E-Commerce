@@ -13,4 +13,8 @@ class Customer extends Authenticatable
     protected $fillable = ['name', 'email', 'password', 'phone', 'status'];
 
     protected $hidden = ['password'];
+    public function addresses()
+    {
+        return $this->hasMany(Address::class, 'customer_id');
+    }
 }

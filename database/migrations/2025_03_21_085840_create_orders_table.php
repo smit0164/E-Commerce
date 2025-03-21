@@ -10,12 +10,10 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_name');
-            $table->string('customer_email');
-            $table->string('customer_phone');
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
+            $table->foreignId('address_id')->constrained('addresses')->onDelete('cascade');
             $table->decimal('total_amount', 8, 2);
-            $table->string('status')->default('pending');
-            $table->foreignId('address_id')->constrained()->onDelete('cascade');
+            $table->string('status', 50)->default('pending');
             $table->timestamps();
         });
     }

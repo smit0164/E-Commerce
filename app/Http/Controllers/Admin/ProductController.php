@@ -16,11 +16,12 @@ class ProductController extends Controller
      */
     public function edit($slug)
     {
-        $product = Product::where('slug', $slug)->firstOrFail(); // Fetch product by slug
-      
+        // Eager load the 'categories' relationship
+        $product = Product::with('categories')->where('slug', $slug)->firstOrFail();
+        
         $categories = Category::all(); // Get all categories
         $selectedCategories = $product->categories->pluck('id')->toArray(); // Fetch selected category IDs
-      
+        
         return view('pages.admin.products.edit', compact('product', 'categories', 'selectedCategories'));
     }
 
@@ -40,7 +41,7 @@ class ProductController extends Controller
     
     public function index()
     {
-        $products = Product::latest()->get();
+        $products = Product::with('categories')->latest()->get();
         return view('pages.admin.products.index', compact('products'));
     }
     public function create()

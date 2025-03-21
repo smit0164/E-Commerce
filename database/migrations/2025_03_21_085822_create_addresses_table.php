@@ -10,14 +10,16 @@ class CreateAddressesTable extends Migration
     {
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->default('Default'); // e.g., "Home"
-            $table->string('customer_name');
-            $table->string('customer_phone');
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
+            $table->string('customer_name', 255);
+            $table->string('customer_phone', 15);
+            $table->string('customer_email', 255);
             $table->text('address_line');
-            $table->string('city');
-            $table->string('state');
-            $table->string('postal_code');
-            $table->string('country');
+            $table->string('city', 100);
+            $table->string('state', 100);
+            $table->string('postal_code', 20);
+            $table->string('country', 100);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

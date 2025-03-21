@@ -6,8 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $fillable = [
-        'customer_name', 'customer_email', 'customer_phone', 'total_amount', 'status', 'address_id',
+        'customer_id',  // Add this
+        'address_id',
+        'total_amount',
+        'status',
     ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
 
     public function orderItems()
     {
@@ -17,10 +30,5 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
-    }
-
-    public function address()
-    {
-        return $this->belongsTo(Address::class);
     }
 }

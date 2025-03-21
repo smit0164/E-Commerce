@@ -3,8 +3,9 @@
 namespace App\Providers;
 use App\Models\Category;
 use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Eloquent\Model;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+    
     }
 
     /**
@@ -21,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Model::preventLazyLoading(true);
         View::composer('layouts.users.app', function ($view) {
             $view->with('categories', Category::all());
         });
