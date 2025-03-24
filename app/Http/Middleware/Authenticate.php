@@ -17,8 +17,8 @@ class Authenticate
     public function handle(Request $request, Closure $next, string $guard = 'customer'): Response
     {   
        
+         
         if (!Auth::guard($guard)->check()) {
-           
             $route = $guard === 'admin' ? 'admin.login' : 'login';
             return redirect()->route($route)->withErrors(['error' => 'You must be logged in to access this page.']);
         }

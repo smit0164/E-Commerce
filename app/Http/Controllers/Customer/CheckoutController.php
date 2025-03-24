@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\Cart;
 use App\Services\CheckoutService;
 use Illuminate\Support\Facades\Log;
+use App\Models\Address;
 
 class CheckoutController extends Controller
 {
@@ -15,7 +16,6 @@ class CheckoutController extends Controller
 
     public function __construct(Cart $cart, CheckoutService $checkoutService)
     {
-        
         $this->cart = $cart;
         $this->checkoutService = $checkoutService;
     }
@@ -29,41 +29,50 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth('customer')->check()) {
-            return redirect()->route('login')->with('error', 'Please log in to proceed.');
-        }
-
-        $validatedData = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'required|string|regex:/^[0-9]{10,15}$/',
-            'address_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if ($value !== 'new' && !\App\Models\Address::where('id', $value)->exists()) {
-                        $fail('The selected address id is invalid.');
-                    }
-                },
-            ],
-            'address' => 'required_if:address_id,new|string|max:255|nullable',
-            'city' => 'required_if:address_id,new|string|max:100|nullable',
-            'state' => 'required_if:address_id,new|string|max:100|nullable',
-            'postal_code' => 'required_if:address_id,new|string|regex:/^[0-9]{4,10}/|nullable', // Fixed: Added closing /
-            'country' => 'required_if:address_id,new|string|max:100|nullable',
-        ]);
-
+            'phone' => 'required|digits:10',
+            'payment_method' => 'required|in:cod',
+        ];
+        $shippingId = $request->input('shipping_address_id');
+        if (!isset($shippingId) || $shippingId === 'new') {
+            // Apply rules for new shipping address
+            $rules['shipping.address_line1'] = 'required|string|max:255';
+            $rules['shipping.city'] = 'required|string|max:100';
+            $rules['shipping.state'] = 'required|string|max:100';
+            $rules['shipping.postal_code'] = 'required|digits_between:4,10';
+            $rules['shipping.country'] = 'required|string|max:100';
+        }
+        $billingId = $request->input('billing_address_id');
+        if (!isset($billingId) || $billingId === 'new') {
+            // Apply rules for new billing address
+            $rules['billing.address_line1'] = 'required|string|max:255';
+            $rules['billing.city'] = 'required|string|max:100';
+            $rules['billing.state'] = 'required|string|max:100';
+            $rules['billing.postal_code'] = 'required|digits_between:4,10';
+            $rules['billing.country'] = 'required|string|max:100';
+        }
+         
+        // Validate the request with dynamic rules
+        $validatedData = $request->validate($rules);
+        
         $cartItems = $this->cart->getItems();
         if (empty($cartItems)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty, friend!');
         }
-
+    
+        Log::info('Checkout Attempt Started', ['customer_id' => auth('customer')->id()]);
+    
         try {
             $order = $this->checkoutService->processCheckout($validatedData, $cartItems);
             Log::info('Order placed successfully: ' . $order->id);
-            return redirect()->route('home')->with('success', "Thanks for your order! Your order ID is #{$order->id}");
+            return view('pages.products.order-success', compact('order'));
         } catch (\Exception $e) {
             Log::error('Checkout Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong while placing your order: ' . $e->getMessage());
+            session()->flash('error', 'Something went wrong while placing your order: ' . $e->getMessage());
+            Log::info('Session Data After Flash', session()->all());
+            return redirect()->back()->withInput();
         }
     }
 }

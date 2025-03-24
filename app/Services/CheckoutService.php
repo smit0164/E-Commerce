@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Address;
 use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 
 class CheckoutService
 {
@@ -17,71 +17,86 @@ class CheckoutService
         $this->cart = $cart;
     }
 
-    public function processCheckout(array $data, array $cartItems)
+    public function processCheckout(array $validatedData, array $cartItems)
     {
-        $totalAmount = $this->cart->totalPrice();
-
-        return DB::transaction(function () use ($data, $cartItems, $totalAmount) {
-            $customerId = auth('customer')->id();
-            if (!$customerId) {
-                throw new \Exception('Customer not authenticated under "customer" guard');
-            }
-
-            // Determine address_id
-            $addressId = $data['address_id'] ?? null;
-
-            // If address_id is "new" or new address fields are provided, create a new address
-            if ($addressId === 'new') {
-                if (empty($data['address']) || empty($data['city']) || empty($data['state']) || empty($data['postal_code']) || empty($data['country'])) {
-                    throw new \Exception('All new address fields are required.');
-                }
-                $addressId = Address::create([
-                    'customer_id' => $customerId,
-                    'customer_name' => $data['name'],
-                    'customer_phone' => $data['phone'],
-                    'customer_email' => $data['email'],
-                    'address_line' => $data['address'],
-                    'city' => $data['city'],
-                    'state' => $data['state'],
-                    'postal_code' => $data['postal_code'],
-                    'country' => $data['country'],
-                    'is_default' => !auth('customer')->user()->addresses()->exists(),
+        return DB::transaction(function () use ($validatedData, $cartItems) {
+            $customer = auth('customer')->user();
+            $totalPrice = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cartItems));
+            $shippingAddressId = $validatedData['shipping_address_id'] ?? null;
+            if ($shippingAddressId == 'new' || !$shippingAddressId) {
+                // Check if a default shipping address already exists
+                $hasDefaultShipping = Address::where('customer_id', $customer->id)
+                    ->where('type', 'shipping')
+                    ->where('is_default', true)
+                    ->exists();
+                
+                $shippingAddressId = Address::create([
+                    'customer_id' => $customer->id,
+                    'type' => 'shipping',
+                    'full_name' => $validatedData['name'],
+                    'phone' => $validatedData['phone'],
+                    'address_line1' => $validatedData['shipping']['address_line1'],
+                    'address_line2' => null,
+                    'city' => $validatedData['shipping']['city'],
+                    'state' => $validatedData['shipping']['state'],
+                    'postal_code' => $validatedData['shipping']['postal_code'],
+                    'country' => $validatedData['shipping']['country'],
+                    'is_default' => !$hasDefaultShipping, // True only if no default exists
                 ])->id;
-            } elseif (!$addressId || !\App\Models\Address::where('id', $addressId)->exists()) {
-                // Fallback to default address if address_id is empty or invalid
-                $defaultAddress = auth('customer')->user()->addresses()->where('is_default', true)->first();
-                if (!$defaultAddress) {
-                    throw new \Exception('No valid address selected and no default address found.');
-                }
-                $addressId = $defaultAddress->id;
+               
             }
 
-            // Create the order
+            // Billing Address
+            $billingAddressId = $validatedData['billing_address_id']??null;
+            if ($billingAddressId == 'new' || !$billingAddressId) {
+                // Check if a default billing address already exists
+                $hasDefaultBilling = Address::where('customer_id', $customer->id)
+                    ->where('type', 'billing')
+                    ->where('is_default', true)
+                    ->exists();
+
+                $billingAddressId = Address::create([
+                    'customer_id' => $customer->id,
+                    'type' => 'billing',
+                    'full_name' => $validatedData['name'],
+                    'phone' => $validatedData['phone'],
+                    'address_line1' => $validatedData['billing']['address_line1'],
+                    'address_line2' => null,
+                    'city' => $validatedData['billing']['city'],
+                    'state' => $validatedData['billing']['state'],
+                    'postal_code' => $validatedData['billing']['postal_code'],
+                    'country' => $validatedData['billing']['country'],
+                    'is_default' => !$hasDefaultBilling, // True only if no default exists
+                ])->id;
+            }
+
+            // Create Order
             $order = Order::create([
-                'customer_id' => $customerId,
-                'address_id' => $addressId,
-                'total_amount' => $totalAmount,
+                'customer_id' => $customer->id,
+                'total_amount' => $totalPrice,
                 'status' => 'pending',
+                'shipping_address_id' => $shippingAddressId,
+                'billing_address_id' => $billingAddressId,
             ]);
 
-            // Create order items
+            // Create Order Items
             foreach ($cartItems as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item['product_id'],
-                    'product_name' => $item['name'],
-                    'price' => $item['price'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['price'],
                     'subtotal' => $item['price'] * $item['quantity'],
+                    'product_name' => $item['name'],
                 ]);
             }
 
-            // Create payment
+            // Create Payment
             Payment::create([
                 'order_id' => $order->id,
-                'payment_method' => 'cod',
+                'amount' => $totalPrice,
+                'payment_method' => $validatedData['payment_method'],
                 'status' => 'pending',
-                'amount' => $totalAmount,
             ]);
 
             // Clear the cart

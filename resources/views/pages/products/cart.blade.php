@@ -57,7 +57,6 @@
                 showToast(response.message, 'success', 2000);
             }
 
-            // Update cart quantity
             $('.update-quantity').on('click', function() {
                 let productId = $(this).data('product-id');
                 let action = $(this).data('action');

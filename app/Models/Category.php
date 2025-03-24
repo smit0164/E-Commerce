@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Category extends Model
 {
-    use HasFactory;
-    protected $fillable = ['name','slug','image'];
-    public function products(): BelongsToMany
+    use SoftDeletes;
+
+    protected $fillable = ['name', 'slug', 'image'];
+    protected $dates = ['deleted_at'];
+
+    public function products()
     {
         return $this->belongsToMany(Product::class, 'product_category', 'category_id', 'product_id');
     }
