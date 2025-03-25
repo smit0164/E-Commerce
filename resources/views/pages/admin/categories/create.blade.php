@@ -44,7 +44,20 @@
                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
             @enderror
         </div>
-
+        <div class="mb-3">
+            <label for="category-status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select name="status" 
+                    id="category-status" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 
+                           hover:border-indigo-400 focus:border-indigo-500 focus:bg-white focus:shadow-md focus:outline-none 
+                           transition-all duration-200 ease-in-out @error('status') border-red-500 @enderror">
+                <option value="active" {{ old('status', 'active') === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+            @error('status')
+                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+            @enderror
+        </div>
         <div class="mb-3">
             <label for="category-image" class="block text-sm font-medium text-gray-700">Category Image</label>
             <input type="file" 
@@ -59,7 +72,7 @@
                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
             @enderror
         </div>
-
+         
         <div class="flex justify-end space-x-2">
             <a href="{{ route('admin.categories.index') }}" 
                class="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 text-sm">
@@ -144,6 +157,10 @@ $(document).ready(function () {
             image: {
                 required: true,
                 accept: "image/jpeg,image/png,image/jpg"
+            },
+            status:{
+                required: true,
+                in: ['active', 'inactive']
             }
         },
         messages: {
@@ -155,6 +172,10 @@ $(document).ready(function () {
             image: {
                 required: "Please upload an image",
                 accept: "Only JPG, JPEG, or PNG files are allowed"
+            },
+            status: {
+                required: 'Please select a status',
+                in: 'Invalid status selected'
             }
         },
         errorClass: "text-red-500 text-xs mt-1",

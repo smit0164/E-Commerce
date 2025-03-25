@@ -13,8 +13,14 @@
 <!-- ./features -->
 
  
-   
-<x-users.shop-by-category :categories="$categories"/>
+<div class="container py-12 px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 uppercase mb-10 text-center tracking-tight">Shop by Category</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        @foreach ($categories as $category)
+            <x-users.shop-by-category :category="$category" />
+        @endforeach
+    </div>
+</div>
    
 <!-- ./categories -->
 
@@ -34,20 +40,8 @@
  <div class="container pb-16">
     <a href="#">
         <img src="{{ asset('assets/images/offer.jpg') }}" alt="ads" class="w-full">
-
     </a>
 </div>
-<!-- ./ads -->
-
-{{-- <div class="container pb-16">
-    <h2 class="text-2xl font-medium text-gray-800 uppercase mb-6">Recommended for You</h2>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        @foreach ($recommendedProducts as $product)
-            <x-users.product-card :product="$product" />
-        @endforeach
-    </div>
-</div> --}}
   
    
         

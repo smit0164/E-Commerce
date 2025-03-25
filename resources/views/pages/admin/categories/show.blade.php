@@ -31,6 +31,17 @@
                 <p class="text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2">{{ $category->slug }}</p>
             </div>
             <div class="space-y-2">
+                <label class="block text-gray-700 font-medium">Status</label>
+                <p class="text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                    <span class="inline-flex items-center px-2 py-1 text-sm font-medium text-white rounded-full 
+                        @if($category->status == 'active') bg-green-500 
+                        @elseif($category->status == 'inactive') bg-red-500 
+                        @else bg-gray-500 @endif">
+                        {{ ucfirst($category->status) }}
+                    </span>
+                </p>
+            </div>
+            <div class="space-y-2">
                 <label class="block text-gray-700 font-medium">Created At</label>
                 <p class="text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2">{{ $category->created_at->format('M d, Y H:i') }}</p>
             </div>
@@ -62,7 +73,7 @@
                             <tr class="hover:bg-indigo-50 transition duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ $product->id }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-indigo-600 font-medium">{{ $product->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">${{ number_format($product->price, 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">₹{{ number_format($product->price, 2) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ $product->created_at->format('M d, Y') }}</td>
                             </tr>
                         @endforeach

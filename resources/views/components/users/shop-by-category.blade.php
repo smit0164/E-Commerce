@@ -1,20 +1,16 @@
-@props(['categories'])
+@props(['category'])
 
-<div class="container py-12">
-    <h2 class="text-3xl font-semibold text-gray-800 uppercase mb-8 text-center">Shop by Category</h2>
+<div class="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+    <!-- Image -->
+    <img src="{{ asset('storage/categories/' . $category->image) }}" 
+         alt="{{ $category->name }}"
+         class="w-full h-56 object-cover transform transition-transform duration-500 group-hover:scale-110">
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        @foreach ($categories as $category)
-            <div class="relative group overflow-hidden rounded-lg shadow-lg">
-                <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}"
-                    class="w-full h-56 object-cover transform transition-transform duration-300 group-hover:scale-105">
-
-                    <a href="{{ route('category.products', $category->slug) }}"
-                        class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center text-xl text-white font-semibold tracking-wide uppercase transition duration-300 group-hover:bg-opacity-60">
-                        {{ $category->name }}
-                    </a>
-                    
-            </div>
-        @endforeach
-    </div>
+    <!-- Overlay and Text -->
+    <a href="{{ route('category.products', $category->slug) }}"
+       class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex items-end justify-center p-4 text-white transition-all duration-300 group-hover:bg-opacity-70">
+        <span class="text-lg md:text-xl font-semibold uppercase tracking-wide transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            {{ $category->name }}
+        </span>
+    </a>
 </div>

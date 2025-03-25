@@ -1,148 +1,153 @@
 @extends('layouts.admin.app')
-
 @section('title', 'Product Management')
-
 @section('content')
-    <div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">Manage Products</h2>
-
-        <!-- Add Product Button -->
-        <div class="flex justify-end mb-8">
-            <a href="{{ route('admin.products.create') }}" class="bg-indigo-600 text-white hover:bg-indigo-700 px-5 py-2.5 rounded-lg flex items-center">
+<div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto my-6"> <!-- Adjusted max-w-10xl to max-w-7xl -->
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900">Manage Products</h2>
+        <div class="flex space-x-4">
+            <a href="{{ route('admin.products.trashed') }}" class="bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded flex items-center">
+                <i class="fas fa-trash-restore mr-2"></i> View Trashed Products
+            </a>
+            <a href="{{ route('admin.products.create') }}" class="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded flex items-center">
                 <i class="fas fa-plus mr-2"></i> Add New Product
             </a>
         </div>
-
-        <!-- Product Table -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-200" id="products-table">
-                <thead class="bg-gray-50">
-                    <tr class="text-left text-sm font-semibold text-gray-900">
-                        @foreach (['ID', 'Image', 'Product Name', 'Category', 'Price', 'Quantity', 'Status', 'Created At', 'Actions'] as $column)
-                            <th class="py-3 px-6">{{ $column }}</th>
-                        @endforeach
+    </div>
+    <div class="overflow-x-auto"> <!-- Added wrapper for horizontal scrolling if needed -->
+        <table class="w-full divide-y divide-gray-200 table-auto"> <!-- Changed min-w-full to w-full, added table-auto -->
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">Actions</th> <!-- Sticky Actions column -->
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse ($products as $product)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-5">{{ $product->id }}</td> <!-- Reduced padding -->
+                        <td class="px-4 py-5">
+                            @if ($product->image)
+                                <img src="{{ asset('storage/products/' . $product->image) }}" alt="{{ $product->name }}" class="max-w-[50px] h-auto">
+                            @else
+                                <span class="text-gray-500">No Image</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-5 truncate max-w-xs">{{ $product->name }}</td> <!-- Added truncate and max-w -->
+                        <td class="px-4 py-5 truncate max-w-xs">{{ $product->categories->pluck('name')->implode(', ') ?: 'No Categories' }}</td>
+                        <td class="px-4 py-5">₹{{ number_format($product->price, 2) }}</td>
+                        <td class="px-4 py-5">{{ $product->quantity }}</td>
+                        <td class="px-4 py-5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {{ $product->status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                {{ $product->status ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-5">{{ $product->created_at->format('M d, Y') }}</td>
+                        <td class="px-4 py-5 flex space-x-3 sticky right-0 bg-white shadow-[inset_10px_0_10px_-10px_rgba(0,0,0,0.1)]"> <!-- Sticky with shadow -->
+                            <a href="{{ route('admin.products.show', $product->slug) }}" 
+                               class="text-green-600 hover:text-green-800" 
+                               title="View Product">
+                                <i class="fas fa-eye w-5 h-5"></i>
+                            </a>
+                            <a href="{{ route('admin.products.edit', $product->slug) }}" 
+                               class="text-indigo-600 hover:text-indigo-800" 
+                               title="Edit">
+                                <i class="fas fa-edit w-5 h-5"></i>
+                            </a>
+                            <button type="button" 
+                                    class="text-red-600 hover:text-red-800" 
+                                    onclick="openDeleteModal('{{ $product->id }}', '{{ $product->slug }}', '{{ $product->name }}')"
+                                    title="Move to Trash">
+                                <i class="fas fa-trash w-5 h-5"></i>
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody id="product-list">
-                    @forelse ($products as $product)
-                        <tr class="border-b hover:bg-gray-50" data-product-id="{{ $product->id }}">
-                            <td class="py-4 px-6 text-sm text-gray-700">{{ $product->id }}</td>
-                            <td class="py-4 px-6 text-sm text-gray-700">
-                                @if ($product->image)
-                                    <img src="{{ asset('storage/products/' . $product->image) }}" alt="{{ $product->name }}" class="w-12 h-12 object-cover rounded">
-                                @else
-                                    <span class="text-gray-500">No Image</span>
-                                @endif
-                            </td>
-                            <td class="py-4 px-6 text-sm text-gray-700">{{ $product->name }}</td>
-                            <td class="py-4 px-6 text-sm text-gray-700">
-                                {{ $product->categories->pluck('name')->implode(', ') ?: 'No Categories' }}
-                            </td>
-                            <td class="py-4 px-6 text-sm text-gray-700">₹{{ number_format($product->price, 2) }}</td>
-                            <td class="py-4 px-6 text-sm text-gray-700">{{ $product->quantity }}</td>
-                            <td class="py-4 px-6 text-sm">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    {{ $product->status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $product->status === 1 ? 'Active' : 'Inactive' }}
-                               </span>
-                            </td>
-                            <td class="py-4 px-6 text-sm text-gray-700">{{ $product->created_at->format('d M Y H:i') }}</td>
-                            <td class="py-4 px-6 text-sm text-gray-700">
-                                <a href="{{ route('admin.products.edit', $product->slug) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                
-                                <button type="button" class="text-red-600 hover:text-red-900 delete-btn" 
-                                        data-product-id="{{ $product->id }}" data-product-name="{{ $product->name }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="py-4 px-6 text-sm text-gray-700 text-center">No products found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                @empty
+                    <tr>
+                        <td colspan="9" class="px-6 py-5 text-center text-gray-500">No products found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-
-    <!-- Manual Delete Confirmation Modal -->
-    <div id="deleteProductModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 hidden flex items-center justify-center transition-opacity duration-300" data-modal>
-        <div class="bg-white p-8 rounded-xl w-full max-w-md shadow-2xl transform transition-all duration-300 scale-95">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Confirm Deletion</h3>
-                <button data-modal="deleteProductModal" class="text-gray-500 hover:text-gray-700 transition closedelete-btn">
-                    <i class="fas fa-times w-6 h-6"></i>
-                </button>
-            </div>
-            <p class="text-gray-700 mb-6">Are you sure you want to delete <span id="delete-product-name" class="font-medium"></span>? This action cannot be undone.</p>
-            <form id="delete-product-form" method="POST" class="space-y-6">
-                @csrf
-                @method('DELETE')
-                <input type="hidden" name="product_id" id="delete-product-id">
-                <div class="flex justify-end space-x-3">
-                    <button type="button"  data-modal="deleteProductModal" class="bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-md closedelete-btn">Cancel</button>
-                    <button type="submit" class="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md">Delete</button>
+    <div class="mt-6">
+        {{ $products->links('pagination::simple-tailwind') }}
+    </div>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Move Product to Trash</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">Are you sure you want to move the product "<span id="delete-product-name"></span>" to trash? You can restore it later from the trash.</p>
                 </div>
-            </form>
+                <form id="delete-product-form" action="" method="POST" class="mt-4">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="product_id" id="delete-product-id">
+                    <div class="flex justify-center space-x-4">
+                        <button type="button" 
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300" 
+                                onclick="closeDeleteModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Move to Trash
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+</div>
 
+<!-- Inline JavaScript -->
+<script>
+    function openDeleteModal(productId, productSlug, productName) {
+        const modal = document.getElementById('delete-modal');
+        const productNameSpan = document.getElementById('delete-product-name');
+        const productIdInput = document.getElementById('delete-product-id');
+        const deleteForm = document.getElementById('delete-product-form');
 
-    <script>
-        $(document).ready(function () {
-            const $productList = $('#product-list');
+        productNameSpan.textContent = productName;
+        productIdInput.value = productId;
+        deleteForm.action = "{{ route('admin.products.destroy', '') }}/" + productSlug;
+        modal.classList.remove('hidden');
+    }
 
-            $('.delete-btn').on('click', function () {
-                const productId = $(this).data('product-id');
-                const productName = $(this).data('product-name');
-                openDeleteModal(productId, productName);
-            });
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
 
-            $('.closedelete-btn').on('click', function () {
-                const modalId = $(this).data('modal');
-                $('#' + modalId).addClass('hidden');
-            });
+    document.getElementById('delete-modal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
 
-            function openDeleteModal(productId, productName) {
-                const modal = $('#deleteProductModal');
-                $('#delete-product-name').text(productName);
-                $('#delete-product-id').val(productId);
-                modal.removeClass('hidden');
-            }
+    function showNotifications() {
+        @if (session('success'))
+            toastr.success("{{ session('success') }}", "Success");
+        @endif
+        @if (session('error'))
+            toastr.error("{{ session('error') }}", "Error");
+        @endif
+    }
 
-            $('#delete-product-form').on('submit', function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-
-                $.ajax({
-                    url: '{{ route("admin.products.destroy") }}',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        if (response.success) {
-                            const productId = formData.get('product_id');
-                            $(`tr[data-product-id="${productId}"]`).remove();
-                            const modal = $('#deleteProductModal');
-                            modal.addClass('hidden');
-                            if (!$productList.children().length) {
-                                $productList.html(
-                                    '<tr><td colspan="9" class="px-6 py-5 text-center text-gray-500">No products found.</td></tr>'
-                                );
-                            }
-                        } else {
-                            alert(response.message || 'Failed to delete product');
-                        }
-                    },
-                    error: function (xhr) {
-                        alert('Error deleting product: ' + (xhr.responseJSON?.message || xhr.statusText));
-                    }
-                });
-            });
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof toastr !== 'undefined') {
+            showNotifications();
+        } else {
+            console.error('Toastr is not loaded');
+        }
+    });
+</script>
 @endsection

@@ -6,14 +6,15 @@
             <i class="fas fa-tachometer-alt w-5 h-5"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{{ route('admin.products') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition">
-            <i class="fas fa-box w-5 h-5"></i>
-            <span>Products</span>
-        </a>
         <a href="{{ route('admin.orders.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition">
             <i class="fas fa-shopping-cart w-5 h-5"></i>
             <span>Orders</span>
         </a>
+        <a href="{{ route('admin.products.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition">
+            <i class="fas fa-box w-5 h-5"></i>
+            <span>Products</span>
+        </a>
+       
         <a href="{{ route('admin.categories.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition">
             <i class="fas fa-folder w-5 h-5"></i>
             <span>Categories</span>

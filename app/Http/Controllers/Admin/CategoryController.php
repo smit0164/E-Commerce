@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -28,10 +27,40 @@ class CategoryController extends Controller
         try {
             // Fetch only soft-deleted categories
             $categories = Category::onlyTrashed()->latest()->simplePaginate(5);
-            
             return view('pages.admin.categories.trashed', compact('categories'));
         } catch (\Exception $e) {
             return back()->with('error', 'Error loading trashed categories: ' . $e->getMessage());
+        }
+    }
+    
+    public function restore($slug)
+    {
+        try {
+            $category = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
+            $category->restore();
+            return redirect()->route('admin.categories.trashed')->with('success', 'Category restored successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error restoring category: ' . $e->getMessage());
+        }
+    }
+
+    public function forceDelete($slug)
+    {
+        try {
+            $category = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
+            
+            if ($category->image) {
+                $imagePath = 'categories/' . $category->image;
+                if (Storage::disk('public')->exists($imagePath)) {
+                    Storage::disk('public')->delete($imagePath);
+                }
+            }
+            
+            $category->forceDelete(); // Permanent delete
+            
+            return redirect()->route('admin.categories.trashed')->with('success', 'Category permanently deleted successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error permanently deleting category: ' . $e->getMessage());
         }
     }
 
@@ -42,11 +71,13 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
+       
         try {
             $request->validate([
                 'name' => 'required|string|max:255|unique:categories,name',
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'slug' => 'required|string|max:255|unique:categories,slug'
+                'slug' => 'required|string|max:255|unique:categories,slug',
+                'status' => 'required|in:active,inactive', // Added status validation
             ]);
 
             if ($request->hasFile('image')) {
@@ -58,7 +89,8 @@ class CategoryController extends Controller
             Category::create([
                 'name' => $request->name,
                 'slug' => $request->slug,
-                'image' => $imageName ?? null
+                'image' => $imageName ?? null,
+                'status' => $request->status, // Added status to the create method
             ]);
 
             return redirect()->route('admin.categories.index')
@@ -77,9 +109,7 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::where('slug', $slug)->firstOrFail();
-            
             $products = $category->products;
-            dd($products);
             return view('pages.admin.categories.show', compact('category', 'products'));
         } catch (\Exception $e) {
             return back()->with('error', 'Error showing category: ' . $e->getMessage());
@@ -99,12 +129,14 @@ class CategoryController extends Controller
     public function update(Request $request, $slug)
     {
         try {
+           
             $category = Category::where('slug', $slug)->firstOrFail();
 
             $request->validate([
                 'name' => 'required|string|min:3|unique:categories,name,' . $category->id,
                 'slug' => 'required|string|min:3|unique:categories,slug,' . $category->id,
                 'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+                'status' => 'required|in:active,inactive',
             ]);
 
             if ($request->hasFile('image')) {
@@ -118,10 +150,10 @@ class CategoryController extends Controller
                 $request->image->storeAs('categories', $imageName, 'public');
                 $category->image = $imageName;
             }
-
             $category->update([
                 'name' => $request->name,
                 'slug' => $request->slug,
+                'status'=>$request->status
             ]);
 
             return redirect()->route('admin.categories.index')
@@ -149,39 +181,7 @@ class CategoryController extends Controller
         }
     }
 
-    public function restore($slug)
-    {
-        try {
-            $category = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
-            $category->restore();
-            
-            return redirect()->route('admin.categories.trashed')
-                           ->with('success', 'Category restored successfully');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error restoring category: ' . $e->getMessage());
-        }
-    }
-
-    public function forceDelete($slug)
-    {
-        try {
-            $category = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
-            
-            if ($category->image) {
-                $imagePath = 'categories/' . $category->image;
-                if (Storage::disk('public')->exists($imagePath)) {
-                    Storage::disk('public')->delete($imagePath);
-                }
-            }
-            
-            $category->forceDelete(); // Permanent delete
-            
-            return redirect()->route('admin.categories.trashed')
-                           ->with('success', 'Category permanently deleted successfully');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error permanently deleting category: ' . $e->getMessage());
-        }
-    }
+   
 
     public function generateSlug(Request $request)
     {

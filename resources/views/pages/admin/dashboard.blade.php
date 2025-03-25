@@ -8,12 +8,24 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <x-admin.stats-card title="Total Orders" :value="$totalOrders" icon="fa-shopping-cart" color="bg-indigo-100 text-indigo-600" />
-            <x-admin.stats-card title="Total Revenue" :value="'₹ ' . number_format($totalRevenue, 2)" icon="fa-indian-rupee-sign" color="bg-green-100 text-green-600" />
-            <x-admin.stats-card title="Total Customers" :value="$totalCustomers" icon="fa-users" color="bg-blue-100 text-blue-600" />
-            <x-admin.stats-card title="Pending Orders" :value="$pendingOrders" icon="fa-spinner" color="bg-orange-100 text-orange-600" />
-            <x-admin.stats-card title="Shipped Orders" :value="$shippedOrders" icon="fa-truck" color="bg-purple-100 text-purple-600" />
-            <x-admin.stats-card title="Delivered Orders" :value="$deliveredOrders" icon="fa-check-circle" color="bg-teal-100 text-teal-600" />
+            <a href="{{ route('admin.orders.index') }}" class="block">
+                <x-admin.stats-card title="Total Orders" :value="$totalOrders" icon="fa-shopping-cart" color="bg-indigo-100 text-indigo-600" />
+            </a>
+            <a href="{{ route('admin.orders.index') }}" class="block">
+                <x-admin.stats-card title="Total Revenue" :value="'₹ ' . number_format($totalRevenue, 2)" icon="fa-indian-rupee-sign" color="bg-green-100 text-green-600" />
+            </a>
+            <a href="" class="block">
+                <x-admin.stats-card title="Total Customers" :value="$totalCustomers" icon="fa-users" color="bg-blue-100 text-blue-600" />
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}" class="block">
+                <x-admin.stats-card title="Pending Orders" :value="$pendingOrders" icon="fa-spinner" color="bg-orange-100 text-orange-600" />
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'shipped']) }}" class="block">
+                <x-admin.stats-card title="Shipped Orders" :value="$shippedOrders" icon="fa-truck" color="bg-purple-100 text-purple-600" />
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'delivered']) }}" class="block">
+                <x-admin.stats-card title="Delivered Orders" :value="$deliveredOrders" icon="fa-check-circle" color="bg-teal-100 text-teal-600" />
+            </a>
         </div>
 
         <!-- Latest Orders -->

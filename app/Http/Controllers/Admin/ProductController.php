@@ -6,75 +6,48 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the products.
-     */
-    public function edit($slug)
-    {
-        // Eager load the 'categories' relationship
-        $product = Product::with('categories')->where('slug', $slug)->firstOrFail();
-        
-        $categories = Category::all(); // Get all categories
-        $selectedCategories = $product->categories->pluck('id')->toArray(); // Fetch selected category IDs
-        
-        return view('pages.admin.products.edit', compact('product', 'categories', 'selectedCategories'));
-    }
-
-
-    public function checkEditUnique(Request $request)
-    {
-        $productId = $request->input('product_id');
-        $name = $request->input('name');
-    
-        // Check if another product (excluding the current one) has the same name
-        $exists = Product::where('name', $name)
-                         ->where('id', '!=', $productId)
-                         ->exists();
-    
-        return response()->json(['isUnique' => !$exists]);
-    }
-    
     public function index()
     {
-        $products = Product::with('categories')->latest()->get();
-        return view('pages.admin.products.index', compact('products'));
+        try {
+            // Fetch only non-deleted products with categories
+            $products = Product::with('categories')->latest()->simplePaginate(5);
+            return view('pages.admin.products.index', compact('products'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error loading products: ' . $e->getMessage());
+        }
     }
+
     public function create()
     {
-        $categories = Category::all();
-        return view('pages.admin.products.create', compact('categories'));
+        try {
+            $categories = Category::all();
+            return view('pages.admin.products.create', compact('categories'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error loading create page: ' . $e->getMessage());
+        }
     }
-
-    public function checkUnique(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|min:3',
-        ]);
-        $exists = Product::where('name', $request->name)->exists();
-        return response()->json(['isUnique' => !$exists]);
-    }
+    
     public function store(Request $request)
     {
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|unique:products,slug',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|in:active,inactive',
-            'quantity' => 'required|integer|min:1',
-            'category_id' => 'required|array|min:1',
-            'category_id.*' => 'exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-
+        
         try {
-            $imageName = null;
+            $request->validate([
+                'name' => 'required|string|max:255|unique:products,name',
+                'slug' => 'required|string|max:255|unique:products,slug',
+                'price' => 'required|numeric|min:0',
+                'quantity' => 'required|integer|min:1',
+                'status' => 'nullable|boolean',
+                'description' => 'nullable|string',
+                'category_id' => 'required|array|min:1',
+                'category_id.*' => 'exists:categories,id',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            ]);
+
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
@@ -84,99 +57,127 @@ class ProductController extends Controller
             $product = Product::create([
                 'name' => $request->name,
                 'slug' => $request->slug,
-                'description' => $request->description,
                 'price' => $request->price,
-                'status' => $request->status === 'active' ? 1 : 0,
                 'quantity' => $request->quantity,
-                'image' => $imageName,
+                'status' => $request->status ?? 0,
+                'description' => $request->description,
+                'image' => $imageName ?? null,
             ]);
 
             $product->categories()->sync($request->category_id);
-            if ($product->status === 1) {
-                $product->status = "active";
-            } else {
-                $product->status = "Inactive";
-            }
-            return response()->json([
-                'success' => true,
-                'message' => 'Product created successfully',
-            ], 201);
+
+            return redirect()->route('admin.products.index')
+                            ->with('success', 'Product created successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->with('error', 'Validation failed: ' . $e->getMessage())
+                        ->withErrors($e->errors())
+                        ->withInput();
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create product',
-                'error' => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Error creating product: ' . $e->getMessage())
+                        ->withInput();
         }
     }
-
-
-
-
-    /**
-     * Show the form for editing the specified product.
-     */
-
-
-    /**
-     * Update the specified product in storage.
-     */
-    public function update(Request $request)
+    public function edit($slug)
+    {
+        try {
+            $product = Product::with('categories')->where('slug', $slug)->firstOrFail();
+            $categories = Category::all();
+            $selectedCategories = $product->categories->pluck('id')->toArray();
+            return view('pages.admin.products.edit', compact('product', 'categories', 'selectedCategories'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error loading product edit page: ' . $e->getMessage());
+        }
+    }
+    public function update(Request $request, $slug)
     {
         
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:products,slug,' . $request->product_id,
-            'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:1',
-            'status' => 'nullable|boolean',
-            'description' => 'nullable|string',
-            'category_id' => 'required|array',
-            'category_id.*' => 'exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
-        ]);
-        $product = Product::findOrFail($request->product_id);
-        $product->name = $request->name;
-        $product->slug = $request->slug;
-        $product->price = $request->price;
-        $product->quantity = $request->quantity;
-        $product->status = $request->status ?? 0; // Default to 0 if not provided
-        $product->description = $request->description;
-        $product->categories()->sync($request->category_id);
-        if ($request->hasFile('image')) {
-            // Delete old image if it exists in storage
-            if ($product->image) {
-                $imagePath = 'products/' . $product->image;
-                if (Storage::disk('public')->exists($imagePath)) {
-                    Storage::disk('public')->delete($imagePath);
+        try {
+            $product = Product::where('slug', $slug)->firstOrFail();
+
+            $request->validate([
+                'name' => 'required|string|max:255|unique:products,name,' . $product->id,
+                'slug' => 'required|string|max:255|unique:products,slug,' . $product->id,
+                'price' => 'required|numeric|min:0',
+                'quantity' => 'required|integer|min:1',
+                'status' => 'nullable|boolean',
+                'description' => 'nullable|string',
+                'category_id' => 'required|array|min:1',
+                'category_id.*' => 'exists:categories,id',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            ]);
+
+            if ($request->hasFile('image')) {
+                if ($product->image) {
+                    $imagePath = 'products/' . $product->image;
+                    if (Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
+                    }
                 }
+                $imageName = time() . '.' . $request->file('image')->getClientOriginalExtension();
+                $request->file('image')->storeAs('products', $imageName, 'public');
+                $product->image = $imageName;
             }
-    
-            // Store new image
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('products', $imageName, 'public');
-    
-            // Update product image
-            $product->image = $imageName;
+
+            $product->update([
+                'name' => $request->name,
+                'slug' => $request->slug,
+                'price' => $request->price,
+                'quantity' => $request->quantity,
+                'status' => $request->status ?? 0,
+                'description' => $request->description,
+            ]);
+
+            $product->categories()->sync($request->category_id);
+
+            return redirect()->route('admin.products.index')
+                            ->with('success', 'Product updated successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->with('error', 'Validation failed: ' . $e->getMessage())
+                        ->withErrors($e->errors())
+                        ->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error updating product: ' . $e->getMessage())
+                        ->withInput();
         }
-        $product->save();
-        return response()->json([
-            'success' => true,
-            'message' => 'Product updated successfully!',
-        ]);
+    }
+    public function destroy($slug)
+    {
+        try {
+            $product = Product::where('slug', $slug)->firstOrFail();
+            $product->delete(); // Soft delete
+
+            return redirect()->route('admin.products.index')
+                            ->with('success', 'Product moved to trash successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error moving product to trash: ' . $e->getMessage());
+        }
+    }
+    public function trashed()
+    {
+        try {
+            // Fetch only soft-deleted products
+            $products = Product::onlyTrashed()->with('categories')->latest()->simplePaginate(5);
+            return view('pages.admin.products.trashed', compact('products'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error loading trashed products: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Remove the specified product from storage.
-     */
-    public function destroy(Request $request)
+    public function restore($slug)
     {
-
         try {
-            $productId = $request->input('product_id');
-            $product = Product::findOrFail($productId);
+            $product = Product::onlyTrashed()->where('slug', $slug)->firstOrFail();
+            $product->restore();
+            return redirect()->route('admin.products.trashed')->with('success', 'Product restored successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error restoring product: ' . $e->getMessage());
+        }
+    }
+
+    public function forceDelete($slug)
+    {
+        try {
+            $product = Product::onlyTrashed()->where('slug', $slug)->firstOrFail();
 
             if ($product->image) {
                 $imagePath = 'products/' . $product->image;
@@ -185,17 +186,73 @@ class ProductController extends Controller
                 }
             }
 
-            $product->delete();
+            $product->forceDelete(); // Permanent delete
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Product deleted successfully'
-            ]);
+            return redirect()->route('admin.products.trashed')->with('success', 'Product permanently deleted successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting product: ' . $e->getMessage()
-            ], 500);
+            return back()->with('error', 'Error permanently deleting product: ' . $e->getMessage());
+        }
+    }
+
+   
+
+  
+
+    public function show($slug)
+    {
+        try {
+            $product = Product::with('categories')->where('slug', $slug)->firstOrFail();
+            return view('pages.admin.products.show', compact('product'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error showing product: ' . $e->getMessage());
+        }
+    }
+
+
+
+    
+
+   
+
+    public function generateSlug(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|min:3',
+            ]);
+            $slug = Str::slug($request->name);
+            return response()->json(['slug' => $slug]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error generating slug: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function checkUnique(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|min:3',
+            ]);
+            $exists = Product::where('name', $request->name)->exists();
+            return response()->json(['isUnique' => !$exists]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error checking uniqueness: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function checkUniqueForEdit(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|min:3',
+                'product_id' => 'required|exists:products,id',
+            ]);
+            $exists = Product::where('name', $request->name)
+                            ->where('id', '!=', $request->product_id)
+                            ->exists();
+            return response()->json(['isUnique' => !$exists]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error checking uniqueness: ' . $e->getMessage()], 500);
         }
     }
 }

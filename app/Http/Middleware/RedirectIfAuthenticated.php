@@ -18,6 +18,7 @@ class RedirectIfAuthenticated
         
         $guards = empty($guards) ? [null] : $guards; // Handle case when no guards are specified
         foreach ($guards as $guard) {
+            
             if (Auth::guard($guard)->check()) {
                 if ($guard === 'admin') {
                     return redirect()->route('admin.dashboard'); // Redirect admin to dashboard

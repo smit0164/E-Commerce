@@ -20,6 +20,7 @@ class CheckoutService
     public function processCheckout(array $validatedData, array $cartItems)
     {
         return DB::transaction(function () use ($validatedData, $cartItems) {
+           
             $customer = auth('customer')->user();
             $totalPrice = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cartItems));
             $shippingAddressId = $validatedData['shipping_address_id'] ?? null;

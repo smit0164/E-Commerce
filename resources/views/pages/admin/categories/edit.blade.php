@@ -33,7 +33,17 @@
                     <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
                 @enderror
             </div>
-
+            <div>
+                <label for="category-status" class="block text-gray-700 font-medium mb-2">Status</label>
+                <select name="status" id="category-status"
+                    class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition @error('status') border-red-500 @enderror">
+                    <option value="active" {{ old('status', $category->status) === 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ old('status', $category->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+                @error('status')
+                    <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </div>
             <div>
                 <label for="category-image" class="block text-gray-700 font-medium mb-2">Category Image</label>
                 <div class="mb-4" id="current-image">
@@ -132,6 +142,10 @@
                         image: {
                             accept: 'image/jpeg,image/png,image/jpg',
                         },
+                        status: {
+                            required: true,
+                            in: ['active', 'inactive']
+                        }
                     },
                     messages: {
                         name: {
@@ -142,6 +156,10 @@
                         image: {
                             accept: 'Only image files (JPG, JPEG, PNG) are allowed',
                         },
+                        status: {
+                            required: 'Please select a status',
+                            in: 'Invalid status selected'
+                        }
                     },
                     errorClass: 'text-red-500 text-sm mt-1',
                     errorElement: 'div',

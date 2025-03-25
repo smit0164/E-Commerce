@@ -12,10 +12,19 @@ class OrderController extends Controller
     /**
      * Display a listing of the orders.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('customer')->latest()->paginate(10);
-        return view('pages.admin.orders.index', compact('orders'));
+        try {
+            $query = Order::with('customer')->latest();
+            if ($request->has('status')) {
+                $query->where('status', $request->input('status'));
+            }
+
+            $orders = $query->simplePaginate(10);
+            return view('pages.admin.orders.index', compact('orders'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to load orders: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -23,44 +32,45 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $try=$order->load('customer', 'orderItems.product');
-        return view('pages.admin.orders.show', compact('order'));
-    }
-    public function edit(Order $order)
-    {
-        return view('pages.admin.orders.edit', compact('order'));
+        try {
+            $order->load('customer', 'orderItems.product');
+            return view('pages.admin.orders.show', compact('order'));
+        } catch (\Exception $e) {
+            return redirect()->route('admin.orders.index')->with('error', 'Failed to load order details: ' . $e->getMessage());
+        }
     }
 
+    /**
+     * Show the form for editing the specified order.
+     */
+    public function edit(Order $order)
+    {
+        try {
+            return view('pages.admin.orders.edit', compact('order'));
+        } catch (\Exception $e) {
+            return redirect()->route('admin.orders.index')->with('error', 'Failed to load edit form: ' . $e->getMessage());
+        }
+    }
 
     /**
      * Update the order status.
      */
     public function update(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|string|in:pending,processing,shipped,delivered,canceled',
-        ]);
+        try {
+            $request->validate([
+                'status' => 'required|string|in:pending,shipped,delivered',
+            ]);
 
-        $order->update(['status' => $request->status]);
-        return redirect()->route('admin.orders.index')->with('success', 'Order status updated successfully.');
-        
-    }
-
-    /**
-     * Export orders as CSV.
-     */
-    public function exportCsv()
-    {
-        $orders = Order::with('customer')->get();
-        $csvData = "Order ID, Customer Name, Total Amount, Status, Date\n";
-
-        foreach ($orders as $order) {
-            $csvData .= "{$order->id}, {$order->customer->name}, \${$order->total_amount}, {$order->status}, {$order->created_at}\n";
+            $order->update(['status' => $request->status]);
+            return redirect()->route('admin.orders.index')->with('success', 'Order status updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->with('error', 'Validation failed: ' . $e->getMessage())
+                        ->withErrors($e->errors())
+                        ->withInput();
+        } catch (\Exception $e) {
+            return redirect()->route('admin.orders.index')->with('error', 'Failed to update order: ' . $e->getMessage());
         }
-
-        return Response::make($csvData, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="orders.csv"',
-        ]);
     }
+
 }

@@ -21,6 +21,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -34,6 +35,15 @@
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->name }}</td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->slug }}</td>
+                        <td class="px-6 py-5 whitespace-nowrap">
+                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white rounded-full 
+                                @if($category->status == 'active') bg-green-500 
+                                @elseif($category->status == 'inactive') bg-red-500 
+                                @else bg-gray-500
+                                @endif">
+                                {{ ucfirst($category->status) }}
+                            </span>
+                        </td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-5 whitespace-nowrap flex space-x-4">
                             <a href="{{ route('admin.categories.show', $category->slug) }}" 
@@ -56,7 +66,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-5 text-center text-gray-500">No categories found.</td>
+                        <td colspan="7" class="px-6 py-5 text-center text-gray-500">No categories found.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -4,51 +4,64 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class CustomerAuthController extends Controller
 {
     public function showRegisterForm()
     {
-        return view('pages.auth.customer.register');
+        try {
+            return view('pages.auth.customer.register');
+        } catch (\Exception $e) {
+            return redirect()->route('home')->with('error', 'Unable to load registration form. Please try again.');
+        }
     }
 
     public function register(Request $request)
     {
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255|min:3',
+                'email' => 'required|email|unique:customers,email|max:255',
+                'phone' => 'required|digits:10',
+                'password' => 'required|min:6|confirmed',
+            ]);
 
-        $request->validate([
-            'name' => 'required|string|max:255|min:3',
-            'email' => 'required|email|unique:users,email|max:255',
-            'phone' => 'required|digits:10',
-            'password' => 'required|min:6|confirmed',
-        ]);
-        Customer::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-        ]);
+            Customer::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($data['password']),
+            ]);
 
-        return redirect()->route('login')->with('success', 'Registration successful! Please login.');
+            return redirect()->route('login')->with('success', 'Registration successful! Please login.');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to register. Please try again.')->withInput();
+        }
     }
 
     public function showLoginForm()
     {
-        return view('pages.auth.customer.login');
+        try {
+            return view('pages.auth.customer.login');
+        } catch (\Exception $e) {
+            return redirect()->route('home')->with('error', 'Unable to load login form. Please try again.');
+        }
     }
 
     public function login(Request $request)
     {
-
         try {
-            // Validate input
             $credentials = $request->validate([
                 'email' => 'required|email',
                 'password' => 'required|string',
             ]);
+
             if (Auth::guard('customer')->attempt($credentials)) {
                 $request->session()->regenerate();
                 return redirect()->route('home');
@@ -57,28 +70,23 @@ class CustomerAuthController extends Controller
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials do not match our records.'],
             ]);
-        }catch (ValidationException $e) {
-            return back()
-                ->withErrors($e->errors())
-                ->withInput($request->except('password'));
-        }catch (\Exception $e){
-            return back()
-                ->withErrors(['email' => 'Something went wrong. Please try again.'])
-                ->withInput($request->except('password'));
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput($request->except('password'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Something went wrong. Please try again.')->withInput($request->except('password'));
         }
     }
+
     public function logout(Request $request)
-    {  
-        try{
-             
-            Auth::guard("customer")->logout();
+    {
+        try {
+            Auth::guard('customer')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect(route("home"));
-        }catch(\Exception $e){
-            return back()->withErrors(['error' => 'Something went wrong while logging out.']);
+            return redirect()->route('home')->with('success', 'Logged out successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to logout. Please try again.');
         }
-       
     }
 }

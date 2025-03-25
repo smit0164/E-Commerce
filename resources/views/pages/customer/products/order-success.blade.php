@@ -40,46 +40,7 @@
                 </div>
             </div>
 
-            <!-- Shipping and Billing Addresses -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- Shipping Address -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Shipping Address</h3>
-                    @if ($order->shippingAddress)
-                        <p class="text-gray-600 text-sm">
-                            {{ $order->shippingAddress->full_name }}<br>
-                            {{ $order->shippingAddress->address_line1 }}<br>
-                            @if ($order->shippingAddress->address_line2)
-                                {{ $order->shippingAddress->address_line2 }}<br>
-                            @endif
-                            {{ $order->shippingAddress->city }}, {{ $order->shippingAddress->state }} {{ $order->shippingAddress->postal_code }}<br>
-                            {{ $order->shippingAddress->country }}<br>
-                            Phone: {{ $order->shippingAddress->phone }}
-                        </p>
-                    @else
-                        <p class="text-gray-500 italic text-sm">No shipping address provided.</p>
-                    @endif
-                </div>
-
-                <!-- Billing Address -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Billing Address</h3>
-                    @if ($order->billingAddress)
-                        <p class="text-gray-600 text-sm">
-                            {{ $order->billingAddress->full_name }}<br>
-                            {{ $order->shippingAddress->address_line1 }}<br>
-                            @if ($order->billingAddress->address_line2)
-                                {{ $order->billingAddress->address_line2 }}<br>
-                            @endif
-                            {{ $order->billingAddress->city }}, {{ $order->billingAddress->state }} {{ $order->billingAddress->postal_code }}<br>
-                            {{ $order->billingAddress->country }}<br>
-                            Phone: {{ $order->billingAddress->phone }}
-                        </p>
-                    @else
-                        <p class="text-gray-500 italic text-sm">No billing address provided.</p>
-                    @endif
-                </div>
-            </div>
+            
         </div>
 
         <!-- Action -->

@@ -7,13 +7,13 @@ use App\Http\Controllers\Customer\ProductController as CustomerProductController
 use Illuminate\Support\Facades\Route;
 
 // Customer Routes
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{slug}', [HomeController::class, 'show'])->name('category.products');
+
 Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [CustomerProductController::class, 'show'])->name('products.show');
-Route::get('/cart', fn() => view('pages.products.cart'))->name('cart');
-Route::get('/checkout', fn() => view('pages.products.checkout'))->name('checkout');
-Route::get('/contact', fn() => view('pages.products.contact'))->name('contact');
+
 
 Route::middleware("guest:customer")->group(function () {
     Route::get('register', [CustomerAuthController::class, 'showRegisterForm'])->name('register');
@@ -35,7 +35,7 @@ Route::middleware("auth:customer")->group(function () {
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
     });
     Route::get('/order-success', function () {
-        return view('pages.products.order-success', ['order' => session('order')]);
+        return view('pages.customer.products.order-success', ['order' => session('order')]);
     })->name('order.success');
     Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });

@@ -15,15 +15,6 @@ Route::middleware('guest:admin')->group(function () {
     });
 });
 
-// Admin Orders Routes
-Route::prefix('admin/orders')->middleware('auth:admin')->group(function () {
-    Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
-    Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::get('/export/csv', [OrderController::class, 'exportCsv'])->name('admin.orders.exportCsv');
-    Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('admin.orders.edit');
-    Route::put('/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
-});
-
 // Admin Authenticated Routes
 Route::middleware('auth:admin')->group(function () {
     Route::prefix('admin')->group(function () {
@@ -49,7 +40,6 @@ Route::middleware('auth:admin')->group(function () {
             Route::delete('/{slug}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
         
             // Soft delete management
-            
             Route::post('/{slug}/restore', [CategoryController::class, 'restore'])->name('admin.categories.restore');
             Route::delete('/{slug}/force-delete', [CategoryController::class, 'forceDelete'])->name('admin.categories.force-delete');
         
@@ -58,18 +48,46 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/check-unique', [CategoryController::class, 'checkUnique'])->name('admin.categories.check-unique');
             Route::post('/edit/check-unique', [CategoryController::class, 'checkUniqueForEdit'])->name('admin.categories.edit.check-unique');
         });
+
         // Products Routes
-        Route::prefix('/products')->group(function () {
-            Route::get('/', [ProductController::class, 'index'])->name('admin.products');
+        Route::prefix('products')->group(function () {
+            // List active products
+            Route::get('/', [ProductController::class, 'index'])->name('admin.products.index'); // Updated name to 'admin.products.index'
+            Route::get('/trashed', [ProductController::class, 'trashed'])->name('admin.products.trashed');
+
+            // Create product
             Route::get('/create', [ProductController::class, 'create'])->name('admin.products.create');
-            Route::post('/check-unique', [ProductController::class, 'checkUnique'])->name('admin.products.check-unique');
-            Route::post('/check-edit-unique', [ProductController::class, 'checkEditUnique'])->name('admin.products.check-edit-unique');
             Route::post('/store', [ProductController::class, 'store'])->name('admin.products.store');
-            Route::delete('/destroy', [ProductController::class, 'destroy'])->name('admin.products.destroy');
-            Route::get('/{product:slug}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
-            Route::put('/update', [ProductController::class, 'update']);
+
+            // Show product details
+            Route::get('/{slug}', [ProductController::class, 'show'])->name('admin.products.show');
+
+            // Edit product
+            Route::get('/{slug}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
+            Route::put('/{slug}', [ProductController::class, 'update'])->name('admin.products.update');
+
+            // Delete product (soft delete)
+            Route::delete('/{slug}', [ProductController::class, 'destroy'])->name('admin.products.destroy'); // Updated to use slug
+
+            // Soft delete management
+            Route::post('/{slug}/restore', [ProductController::class, 'restore'])->name('admin.products.restore');
+            Route::delete('/{slug}/force-delete', [ProductController::class, 'forceDelete'])->name('admin.products.force-delete');
+
+            // Utility routes
+            Route::post('/check-unique', [ProductController::class, 'checkUnique'])->name('admin.products.check-unique');
+            Route::post('/edit/check-unique', [ProductController::class, 'checkUniqueForEdit'])->name('admin.products.check-unique-for-edit'); // Fixed typo in name and method
         });
+
+        // Orders Routes
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
+            Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+            Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('admin.orders.edit');
+            Route::put('/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
+        });
+
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
     });
 
-    Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+    
 });

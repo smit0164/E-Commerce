@@ -24,9 +24,8 @@ class CheckoutController extends Controller
     {
         $cartItems = $this->cart->getItems();
         $totalPrice = $this->cart->totalPrice();
-        return view('pages.products.checkout', compact('cartItems', 'totalPrice'));
+        return view('pages.customer.checkout.index', compact('cartItems', 'totalPrice'));
     }
-
     public function store(Request $request)
     {
         $rules = [
@@ -35,6 +34,7 @@ class CheckoutController extends Controller
             'phone' => 'required|digits:10',
             'payment_method' => 'required|in:cod',
         ];
+    
         $shippingId = $request->input('shipping_address_id');
         if (!isset($shippingId) || $shippingId === 'new') {
             // Apply rules for new shipping address
@@ -44,6 +44,7 @@ class CheckoutController extends Controller
             $rules['shipping.postal_code'] = 'required|digits_between:4,10';
             $rules['shipping.country'] = 'required|string|max:100';
         }
+    
         $billingId = $request->input('billing_address_id');
         if (!isset($billingId) || $billingId === 'new') {
             // Apply rules for new billing address
@@ -53,21 +54,30 @@ class CheckoutController extends Controller
             $rules['billing.postal_code'] = 'required|digits_between:4,10';
             $rules['billing.country'] = 'required|string|max:100';
         }
-         
+    
         // Validate the request with dynamic rules
         $validatedData = $request->validate($rules);
-        
+    
+        // Manually add shipping_address_id and billing_address_id to validated data if numeric
+        if (is_numeric($shippingId)) {
+            $validatedData['shipping_address_id'] = $shippingId;
+        }
+        if (is_numeric($billingId)) {
+            $validatedData['billing_address_id'] = $billingId;
+        }
+    
         $cartItems = $this->cart->getItems();
         if (empty($cartItems)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty, friend!');
         }
     
         Log::info('Checkout Attempt Started', ['customer_id' => auth('customer')->id()]);
+        Log::info('Validated Data', $validatedData);
     
         try {
             $order = $this->checkoutService->processCheckout($validatedData, $cartItems);
             Log::info('Order placed successfully: ' . $order->id);
-            return view('pages.products.order-success', compact('order'));
+            return view('pages.customer.products.order-success', compact('order'));
         } catch (\Exception $e) {
             Log::error('Checkout Error: ' . $e->getMessage());
             session()->flash('error', 'Something went wrong while placing your order: ' . $e->getMessage());

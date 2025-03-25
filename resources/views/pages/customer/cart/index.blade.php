@@ -1,8 +1,14 @@
 @extends('layouts.users.app')
 
 @section('content')
-
     <div class="w-full max-w-4xl mx-auto py-10">
+        <!-- Error Message (if any) -->
+        @if (session('error'))
+            <div class="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="flex flex-col lg:flex-row items-start gap-6">
             <!-- Cart Items -->
             <div class="lg:w-2/3 flex-1">
@@ -31,37 +37,35 @@
                         </p>
                     </div>
 
-                    <!-- Proceed to Checkout Button -->
                     <a href="{{ route('checkout.index') }}"
-                        class="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-2">
+                       class="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-2">
                         <i class="fas fa-shopping-cart"></i> Proceed to Checkout
                     </a>
-
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- AJAX for Cart Update -->
     <script>
         $(document).ready(function() {
+            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+
             function updateCartSummary(response) {
                 if (response.total_price !== undefined) {
-                    let formattedPrice = `₹${parseFloat(response.total_price).toFixed(2)}`;
-                    $('#cart-total-price').text(formattedPrice);
+                    $('#cart-total-price').text(`₹${parseFloat(response.total_price).toFixed(2)}`);
+                    $('#cart-count').text(response.totalItems);
+                    showToast(response.message, 'success', 2000);
                 } else {
-                    console.error("Error: total_price not found in response", response);
+                    showToast('Error updating cart summary.', 'error');
                 }
-
-                showToast(response.message, 'success', 2000);
             }
 
             $('.update-quantity').on('click', function() {
-                let productId = $(this).data('product-id');
-                let action = $(this).data('action');
-                let inputField = $(`.cart-quantity[data-product-id="${productId}"]`);
-                let quantity = parseInt(inputField.val());
+                const $button = $(this);
+                const productId = $button.data('product-id');
+                const action = $button.data('action');
+                const $input = $(`.cart-quantity[data-product-id="${productId}"]`);
+                let quantity = parseInt($input.val());
 
                 if (action === 'increase') {
                     quantity++;
@@ -69,49 +73,45 @@
                     quantity--;
                 }
 
-                inputField.val(quantity);
+                $input.val(quantity);
 
                 $.ajax({
                     url: "{{ route('cart.update') }}",
                     method: "POST",
-                    data: {
-                        product_id: productId,
-                        quantity: quantity,
-                        _token: "{{ csrf_token() }}"
-                    },
+                    data: { product_id: productId, quantity: quantity },
                     success: function(response) {
-                        $('#cart-count').text(response.totalItems);
                         updateCartSummary(response);
+                    },
+                    error: function() {
+                        showToast('Error updating quantity.', 'error');
+                        $input.val(quantity); // Revert on error
                     }
                 });
             });
 
-            // Remove from cart
             $('.remove-from-cart').on('click', function() {
-                let productId = $(this).data('product-id');
-                let itemRow = $(this).closest('.cart-item');
+                const $button = $(this);
+                const productId = $button.data('product-id');
+                const $itemRow = $button.closest('.cart-item');
 
                 $.ajax({
                     url: "{{ route('cart.remove') }}",
                     method: "POST",
-                    data: {
-                        product_id: productId,
-                        _token: "{{ csrf_token() }}"
-                    },
+                    data: { product_id: productId },
                     success: function(response) {
-                        itemRow.remove();
-                        $('#cart-count').text(response.totalItems);
+                        $itemRow.remove();
                         if ($('.cart-item').length === 0) {
                             $('#cart-items-container').html(
                                 '<p class="text-gray-600 text-center">Your cart is empty.</p>'
                             );
                         }
-
                         updateCartSummary(response);
+                    },
+                    error: function() {
+                        showToast('Error removing item.', 'error');
                     }
                 });
             });
         });
     </script>
-
 @endsection

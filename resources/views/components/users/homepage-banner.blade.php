@@ -6,7 +6,7 @@
         </h1>
         <p>Shop top-quality products across fashion, electronics, home, and more.</p>
         <div class="mt-12">
-            <a href="/shop" class="bg-primary border border-primary text-white px-8 py-3 font-medium 
+            <a href="{{ route('products.index') }}" class="bg-primary border border-primary text-white px-8 py-3 font-medium 
                 rounded-md hover:bg-transparent hover:text-primary">Shop Now</a>
         </div>
     </div>
