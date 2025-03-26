@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\StaticBlockController;
 use Illuminate\Support\Facades\Route;
 
 // Admin Guest Routes (Login)
@@ -84,6 +85,16 @@ Route::middleware('auth:admin')->group(function () {
             Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
             Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('admin.orders.edit');
             Route::put('/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
+        });
+        
+        Route::prefix('static-blocks')->group(function () {
+            Route::get('/', [StaticBlockController::class, 'index'])->name('admin.static_blocks.index');
+            Route::get('/create', [StaticBlockController::class, 'create'])->name('admin.static_blocks.create');
+            Route::post('/', [StaticBlockController::class, 'store'])->name('admin.static_blocks.store');
+            Route::get('/{id}/edit', [StaticBlockController::class, 'edit'])->name('admin.static_blocks.edit');
+            Route::put('/{id}', [StaticBlockController::class, 'update'])->name('admin.static_blocks.update');
+            Route::delete('/{id}', [StaticBlockController::class, 'destroy'])->name('admin.static_blocks.destroy');
+            Route::post('/generate-slug', [StaticBlockController::class, 'generateSlug'])->name('admin.static_blocks.generate_slug');
         });
 
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');

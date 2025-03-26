@@ -1,9 +1,7 @@
 <header class="py-3 shadow-sm bg-white sticky top-0 z-50">
     <div class="container mx-auto px-6 flex items-center justify-between gap-8">
         <!-- Logo -->
-        <a href="{{ url('/') }}" class="flex-shrink-0">
-            <img src="{{ asset('assets/images/logo.svg') }}" alt="Company Logo" class="w-28 h-auto" loading="lazy">
-        </a>
+        <x-users.logo/>
 
         <!-- Search Bar -->
         <div class="flex-grow max-w-2xl relative">

@@ -20,7 +20,6 @@
         @yield('content')
     </main>
     <x-users.footer />
-    <x-users.copy-right />
     <x-users.Toast />
 
     <script>

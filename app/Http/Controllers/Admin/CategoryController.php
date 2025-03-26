@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Http\Requests\Admin\CategoryRequest;
 use Illuminate\Http\Request;
+
+use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -69,17 +71,9 @@ class CategoryController extends Controller
         return view('pages.admin.categories.create');
     }
 
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
-       
         try {
-            $request->validate([
-                'name' => 'required|string|max:255|unique:categories,name',
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'slug' => 'required|string|max:255|unique:categories,slug',
-                'status' => 'required|in:active,inactive', // Added status validation
-            ]);
-
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
@@ -90,20 +84,17 @@ class CategoryController extends Controller
                 'name' => $request->name,
                 'slug' => $request->slug,
                 'image' => $imageName ?? null,
-                'status' => $request->status, // Added status to the create method
+                'status' => $request->status,
             ]);
 
             return redirect()->route('admin.categories.index')
-                           ->with('success', 'Category created successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->with('error', 'Validation failed: ' . $e->getMessage())
-                        ->withErrors($e->errors())
-                        ->withInput();
+                        ->with('success', 'Category created successfully');
         } catch (\Exception $e) {
             return back()->with('error', 'Error creating category: ' . $e->getMessage())
                         ->withInput();
         }
     }
+
 
     public function show($slug)
     {

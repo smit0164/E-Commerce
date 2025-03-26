@@ -24,12 +24,14 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/additional-methods.min.js"></script>
-     
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
+
+  
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -46,6 +48,6 @@
             </main>
         </div>
     </div>
-   
+    
 </body>
 </html>
