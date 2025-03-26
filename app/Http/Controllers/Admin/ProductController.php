@@ -8,7 +8,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
+use App\Http\Requests\Admin\ProductRequest;
+use App\Http\Requests\Admin\UpdateProductRequest;
 class ProductController extends Controller
 {
     public function index()
@@ -32,22 +33,11 @@ class ProductController extends Controller
         }
     }
     
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
         
         try {
-            $request->validate([
-                'name' => 'required|string|max:255|unique:products,name',
-                'slug' => 'required|string|max:255|unique:products,slug',
-                'price' => 'required|numeric|min:0',
-                'quantity' => 'required|integer|min:1',
-                'status' => 'nullable|boolean',
-                'description' => 'nullable|string',
-                'category_id' => 'required|array|min:1',
-                'category_id.*' => 'exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            ]);
-
+           
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
@@ -66,15 +56,9 @@ class ProductController extends Controller
 
             $product->categories()->sync($request->category_id);
 
-            return redirect()->route('admin.products.index')
-                            ->with('success', 'Product created successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->with('error', 'Validation failed: ' . $e->getMessage())
-                        ->withErrors($e->errors())
-                        ->withInput();
+            return redirect()->route('admin.products.index')->with('success', 'Product created successfully');
         } catch (\Exception $e) {
-            return back()->with('error', 'Error creating product: ' . $e->getMessage())
-                        ->withInput();
+            return back()->with('error', 'Error creating product: ' . $e->getMessage())->withInput();
         }
     }
     public function edit($slug)
@@ -88,23 +72,11 @@ class ProductController extends Controller
             return back()->with('error', 'Error loading product edit page: ' . $e->getMessage());
         }
     }
-    public function update(Request $request, $slug)
+    public function update(UpdateProductRequest $request, $slug)
     {
         
         try {
             $product = Product::where('slug', $slug)->firstOrFail();
-
-            $request->validate([
-                'name' => 'required|string|max:255|unique:products,name,' . $product->id,
-                'slug' => 'required|string|max:255|unique:products,slug,' . $product->id,
-                'price' => 'required|numeric|min:0',
-                'quantity' => 'required|integer|min:1',
-                'status' => 'nullable|boolean',
-                'description' => 'nullable|string',
-                'category_id' => 'required|array|min:1',
-                'category_id.*' => 'exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            ]);
 
             if ($request->hasFile('image')) {
                 if ($product->image) {
@@ -131,10 +103,6 @@ class ProductController extends Controller
 
             return redirect()->route('admin.products.index')
                             ->with('success', 'Product updated successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->with('error', 'Validation failed: ' . $e->getMessage())
-                        ->withErrors($e->errors())
-                        ->withInput();
         } catch (\Exception $e) {
             return back()->with('error', 'Error updating product: ' . $e->getMessage())
                         ->withInput();

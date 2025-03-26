@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Admin\StaticBlockRequest;
+use App\Http\Requests\Admin\StaticBlockUpdateRequest;
 
 class StaticBlockController extends Controller
 {
@@ -27,31 +29,21 @@ class StaticBlockController extends Controller
         return view('pages.admin.static_blocks.create');
     }
 
-    public function store(Request $request)
+    public function store(StaticBlockRequest $request)
     {
         
-    try{
-            // Validate the request data
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'slug' => 'required|string|unique:static_blocks,slug|max:255',
-                'content' => 'required|string',
-                'is_active' => 'nullable|boolean'
-            ]);
-
-            // Prepare data for creation
+    try{ 
+           
             $data = [
                 'title' => $request->input('title'),
                 'slug' => $request->input('slug'),
                 'content' => $request->input('content'),
-                'is_active' => $request->boolean('is_active'), // Default to false if not provided
+                'is_active' => $request->boolean('is_active'),
             ];
 
             StaticBlock::create($data);
             return redirect()->route('admin.static_blocks.index')->with('success', 'Block created successfully');
-        } catch (ValidationException $e) {
-            return redirect()->back()->withErrors($e->validator)->withInput();
-        } catch (Exception $e) {
+        }catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to create block. Please try again.')->withInput();
         }
     }
@@ -62,17 +54,10 @@ class StaticBlockController extends Controller
         return view('pages.admin.static_blocks.edit', compact('staticBlock'));
     }
 
-    public function update(Request $request, StaticBlock $id)
+    public function update(StaticBlockUpdateRequest $request, StaticBlock $id)
     {
         try {
         
-            // Validate the request data
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'slug' => "required|string|max:255|unique:static_blocks,slug,{$id->id},id",
-                'content' => 'required|string',
-                'is_active' => 'nullable|boolean',
-            ]);
 
             // Prepare data for update
             $data = [

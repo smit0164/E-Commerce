@@ -3,9 +3,22 @@
 @section('title', 'Create Static Block')
 
 @section('content')
+
+
     <h1 class="text-2xl font-bold mb-4">Create Static Block</h1>
     <form action="{{ route('admin.static_blocks.store') }}" method="POST" class="bg-white p-6 rounded shadow"  id="staticBlockForm">
         @csrf
+        @if ($errors->any())
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+        <strong>Whoops! Something went wrong.</strong>
+        <ul class="mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>

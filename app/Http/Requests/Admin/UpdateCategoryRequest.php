@@ -3,26 +3,24 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Category;
 
 class UpdateCategoryRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return true; // Allow request procawdessing
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $categoryId = $this->route('slug') ? Category::where('slug', $this->route('slug'))->value('id') : null;
+
         return [
-            //
+            'name' => 'required|string|min:3|unique:categories,name,' . $categoryId,
+            'slug' => 'required|string|min:3|unique:categories,slug,' . $categoryId,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Nullable for updates
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

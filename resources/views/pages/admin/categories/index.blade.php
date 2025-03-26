@@ -73,7 +73,7 @@
         </table>
     </div>
     <div class="mt-6">
-        {{ $categories->links() }}
+        {{ $categories->links('pagination::simple-tailwind') }}
     </div>
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">

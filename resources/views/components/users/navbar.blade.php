@@ -9,7 +9,7 @@
             <span class="capitalize ml-2 text-white">All Categories</span>
 
             <!-- Dropdown -->
-            <div class="absolute w-full left-0 top-full bg-white shadow-md py-3 divide-y divide-gray-300 divide-dashed opacity-0 group-hover:opacity-100 transition duration-300 invisible group-hover:visible z-10000">
+            <div class="absolute w-full left-0 top-full bg-white shadow-md py-3 divide-y divide-gray-300 divide-dashed opacity-0 group-hover:opacity-100 transition duration-300 invisible group-hover:visible z-[9999]">
                 @foreach ($categories as $category)
                     <a href="{{ route('category.products', $category->slug) }}" class="flex items-center px-6 py-3 hover:bg-gray-100 transition">
                         <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}" class="w-5 h-5 object-contain">

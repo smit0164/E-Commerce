@@ -8,7 +8,7 @@ use App\Services\Cart;
 use App\Services\CheckoutService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Address;
-
+use App\Http\Requests\Customer\CheckoutRequest;
 class CheckoutController extends Controller
 {
     protected $cart;
@@ -26,42 +26,17 @@ class CheckoutController extends Controller
         $totalPrice = $this->cart->totalPrice();
         return view('pages.customer.checkout.index', compact('cartItems', 'totalPrice'));
     }
-    public function store(Request $request)
+    public function store(CheckoutRequest $request)
     {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|digits:10',
-            'payment_method' => 'required|in:cod',
-        ];
-    
-        $shippingId = $request->input('shipping_address_id');
-        if (!isset($shippingId) || $shippingId === 'new') {
-            // Apply rules for new shipping address
-            $rules['shipping.address_line1'] = 'required|string|max:255';
-            $rules['shipping.city'] = 'required|string|max:100';
-            $rules['shipping.state'] = 'required|string|max:100';
-            $rules['shipping.postal_code'] = 'required|digits_between:4,10';
-            $rules['shipping.country'] = 'required|string|max:100';
-        }
-    
-        $billingId = $request->input('billing_address_id');
-        if (!isset($billingId) || $billingId === 'new') {
-            // Apply rules for new billing address
-            $rules['billing.address_line1'] = 'required|string|max:255';
-            $rules['billing.city'] = 'required|string|max:100';
-            $rules['billing.state'] = 'required|string|max:100';
-            $rules['billing.postal_code'] = 'required|digits_between:4,10';
-            $rules['billing.country'] = 'required|string|max:100';
-        }
-    
         // Validate the request with dynamic rules
-        $validatedData = $request->validate($rules);
+        $validatedData = $request->validated();
     
         // Manually add shipping_address_id and billing_address_id to validated data if numeric
+        $shippingId = $request->input('shipping_address_id');
         if (is_numeric($shippingId)) {
             $validatedData['shipping_address_id'] = $shippingId;
         }
+        $billingId = $request->input('billing_address_id');
         if (is_numeric($billingId)) {
             $validatedData['billing_address_id'] = $billingId;
         }

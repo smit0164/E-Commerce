@@ -12,7 +12,7 @@
         </div>
     @endif
 
-    <form id="categoryForm" action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data">
+    <form  id="categoryFormNew" action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data" >
         @csrf
         <div class="mb-3">
             <label for="category-name" class="block text-sm font-medium text-gray-700">Category Name</label>
@@ -86,9 +86,9 @@
     </form>
 </div>
 
+
 <script>
 $(document).ready(function () {
-    const csrfToken = $('meta[name="csrf-token"]').attr('content');
     let slugTimeout;
 
     // Image Preview
@@ -113,33 +113,28 @@ $(document).ready(function () {
     // Auto-generate slug
     $("#category-name").on("input", function () {
         const name = $(this).val();
-
-        if (name.length >= 3) {
-            clearTimeout(slugTimeout);
-            slugTimeout = setTimeout(() => {
-                $.ajax({
-                    url: '{{ route('admin.generate-slug')}}',
-                    method: 'POST',
-                    data: { name, _token: csrfToken },
-                    success: function (response) {
-                        $("#category-slug").val(response.slug);
-                    },
-                    error: function () {
-                        $("#category-slug").val('Error generating slug');
-                    }
-                });
-            }, 300);
-        } else {
-            $("#category-slug").val('');
-        }
+        clearTimeout(slugTimeout);
+        slugTimeout = setTimeout(() => {
+            $.ajax({
+                url: '{{ route('admin.generate-slug') }}',
+                method: 'POST',
+                data: { name, _token: "{{ csrf_token() }}" },
+                success: function (response) {
+                    $("#category-slug").val(response.slug);
+                },
+                error: function () {
+                    $("#category-slug").val('Error generating slug');
+                }
+            });
+        }, 300);
     });
 
-    // jQuery Validation
-    $("#categoryForm").validate({
+    // Form Validation
+    $("#categoryFormNew").validate({
         rules: {
             name: {
                 required: true,
-                minlength: 2,
+                minlength: 3,
                 remote: {
                     url: '{{ route('admin.categories.check-unique') }}',
                     type: 'POST',
@@ -147,7 +142,7 @@ $(document).ready(function () {
                         name: function () {
                             return $("#category-name").val();
                         },
-                        _token: csrfToken,
+                        _token: "{{ csrf_token() }}",
                     },
                     dataFilter: function (response) {
                         return JSON.parse(response).isUnique ? 'true' : 'false';
@@ -156,11 +151,7 @@ $(document).ready(function () {
             },
             image: {
                 required: true,
-                accept: "image/jpeg,image/png,image/jpg"
-            },
-            status:{
-                required: true,
-                in: ['active', 'inactive']
+                accept: 'image/jpeg,image/png,image/jpg'
             }
         },
         messages: {
@@ -170,12 +161,8 @@ $(document).ready(function () {
                 remote: "This category name already exists"
             },
             image: {
-                required: "Please upload an image",
-                accept: "Only JPG, JPEG, or PNG files are allowed"
-            },
-            status: {
-                required: 'Please select a status',
-                in: 'Invalid status selected'
+                required: 'Image is required',
+                accept: 'Only JPG, JPEG, or PNG files are allowed'
             }
         },
         errorClass: "text-red-500 text-xs mt-1",
@@ -187,9 +174,15 @@ $(document).ready(function () {
             $(element).removeClass('border-red-500').addClass('border-gray-300');
         },
         submitHandler: function (form) {
-             form.submit();
+            form.submit();
         }
     });
+
+    $("#category-image").on("change", function () {
+        $(this).valid();
+    });
+
 });
 </script>
+
 @endsection
