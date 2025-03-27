@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-
+use App\Mail\RegisterUser;
+use Illuminate\Support\Facades\Mail;
 class CustomerAuthController extends Controller
 {
     public function showRegisterForm()
@@ -30,13 +31,13 @@ class CustomerAuthController extends Controller
                 'password' => 'required|min:6|confirmed',
             ]);
 
-            Customer::create([
+           $customer= Customer::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
                 'password' => Hash::make($data['password']),
             ]);
-
+            Mail::to($customer->email)->queue(new RegisterUser($customer));
             return redirect()->route('login')->with('success', 'Registration successful! Please login.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->validator)->withInput();

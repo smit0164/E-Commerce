@@ -178,9 +178,6 @@ $(document).ready(function () {
         }
     });
 
-    $("#category-image").on("change", function () {
-        $(this).valid();
-    });
 
 });
 </script>

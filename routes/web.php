@@ -37,6 +37,7 @@ Route::middleware("auth:customer")->group(function () {
     Route::get('/order-success', function () {
         return view('pages.customer.products.order-success', ['order' => session('order')]);
     })->name('order.success');
+    Route::get('/order/{id}',[CheckoutController::class, 'showOrdersDetails'])->name('show.oreder.details');
     Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Customer;
-
+use App\Models\Order;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Cart;
@@ -9,6 +9,8 @@ use App\Services\CheckoutService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Address;
 use App\Http\Requests\Customer\CheckoutRequest;
+use App\Mail\OrderPlaced;
+use Illuminate\Support\Facades\Mail;
 class CheckoutController extends Controller
 {
     protected $cart;
@@ -52,6 +54,8 @@ class CheckoutController extends Controller
         try {
             $order = $this->checkoutService->processCheckout($validatedData, $cartItems);
             Log::info('Order placed successfully: ' . $order->id);
+            
+            Mail::to($order->customer->email)->queue(new OrderPlaced($order));
             return view('pages.customer.products.order-success', compact('order'));
         } catch (\Exception $e) {
             Log::error('Checkout Error: ' . $e->getMessage());
@@ -60,4 +64,9 @@ class CheckoutController extends Controller
             return redirect()->back()->withInput();
         }
     }
+
+    public function showOrdersDetails(Order $id){
+        $order = $id;
+        return view('pages.customer.products.order-details', compact('order'));
+    } 
 }

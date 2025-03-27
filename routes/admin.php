@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StaticBlockController;
 use Illuminate\Support\Facades\Route;
+use App\Mail\RegisterUser;
 
 // Admin Guest Routes (Login)
 Route::middleware('guest:admin')->group(function () {
