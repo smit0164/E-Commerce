@@ -27,15 +27,14 @@
                             <p style="font-size: 16px; line-height: 1.5; color: #666; margin: 20px 0;">
                                 Got questions? Reach out to us anytime at <a href="mailto:support@yourstore.com" style="color: #3498db; text-decoration: none;">support@yourstore.com</a>.
                             </p>
-                            <a href="{{ url('/') }}" style="display: inline-block; padding: 12px 25px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px; margin-top: 20px;">
+                            <a href="{{ url(route('home')) }}" style="display: inline-block; padding: 12px 25px; background-color:red; color: #ffffff; text-decoration: none; border-radius: 5px; font-size: 16px; margin-top: 20px;">
                                 Start Shopping Now
                             </a>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 20px 30px; background-color: #ecf0f1; text-align: center; font-size: 14px; color: #999; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-                            Best regards,<br>
-                            The {{ env('APP_NAME') }} Team
+                            Best regards,e-commerce<br>
                         </td>
                     </tr>
                 </table>

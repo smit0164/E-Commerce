@@ -1,21 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - E-Commerce</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-</head>
-
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-white shadow-md border-t-4 border-red-500 px-6 py-6 rounded-lg">
-        <!-- Logo -->
-        <div class="flex justify-center mb-6">
-            <img src="{{ asset('assets/images/logo.svg') }}" alt="Company Logo" class="w-24">
-        </div>
+@extends('layouts.auth.admin-auth')
+@section('content')
 
         <h2 class="text-xl font-semibold text-gray-700 text-center">Login</h2>
         <p class="text-gray-500 text-sm text-center mb-4">Sign in to your account</p>
@@ -26,7 +10,7 @@
                 <div>
                     <label for="email" class="text-gray-600 block mb-1">Email Address</label>
                     <input type="email" name="email" id="email"
-                        class="w-full border border-gray-300 px-3 py-2.5 rounded-md text-gray-700 text-sm placeholder-gray-400"
+                        class="w-full border px-3 py-2.5 rounded-md text-gray-700 text-sm placeholder-gray-400 {{ $errors->has('email') ? 'border-red-500' : 'border-gray-300' }}"
                         placeholder="youremail@domain.com"
                         value="{{ old('email') }}">
                     @error('email')
@@ -36,7 +20,7 @@
                 <div>
                     <label for="password" class="text-gray-600 block mb-1">Password</label>
                     <input type="password" name="password" id="password"
-                        class="w-full border border-gray-300 px-3 py-2.5 rounded-md text-gray-700 text-sm placeholder-gray-400"
+                        class="w-full border px-3 py-2.5 rounded-md text-gray-700 text-sm placeholder-gray-400 {{ $errors->has('password') ? 'border-red-500' : 'border-gray-300' }}"
                         placeholder="*******">
                     @error('password')
                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
@@ -96,6 +80,5 @@
             });
         });
     </script>
-</body>
 
-</html>
+@endsection

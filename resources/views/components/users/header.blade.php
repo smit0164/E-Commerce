@@ -41,7 +41,7 @@
             <nav class="flex items-center gap-6" aria-label="User navigation">
 
                 <!-- Cart -->
-                <a href="/cart"
+                <a href="{{ route('cart.index') }}"
                     class="group text-gray-700 hover:text-primary transition-colors relative flex flex-col items-center">
                     <div class="text-xl">
                         <i class="fa-solid fa-bag-shopping group-hover:scale-110 transition-transform"></i>
@@ -68,7 +68,7 @@
                         <div id="profileDropdown"
                             class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2 hidden transition-opacity duration-300 z-50">
                             <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                            <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Orders</a>
+                            <a href="{{ route('show.order.history', ['userid' => Auth::guard('customer')->user()->id]) }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Orders</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"

@@ -5,12 +5,8 @@
 
 <!-- banner -->
 <x-users.homepage-banner/>
-<!-- ./banner -->
-
-
  <!-- features -->
 <x-users.homepage-features/>
-<!-- ./features -->
 
  
 <div class="container py-12 px-4 sm:px-6 lg:px-8">
@@ -39,8 +35,6 @@
  <!-- ads -->
 <x-users.homepage-ad/>
   
-   
-        
 </div>
 
 @endsection

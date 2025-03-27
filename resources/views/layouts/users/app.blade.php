@@ -15,6 +15,7 @@
 </head>
 <body>
     <x-users.header />
+
     <x-users.navbar :categories="$categories" />
     <main>
         @yield('content')
@@ -47,7 +48,7 @@
             // Cart Logic with Data Attribute
             const isGuest = @json(auth()->guard('customer')->guest());
             $('[data-cart-action="add"]').on('click', function (e) {
-                e.preventDefault(); // Prevent any default button behavior
+                e.preventDefault();
                 const $button = $(this);
                 const productId = $button.data('product-id');
                 console.log('Is Guest:', isGuest);
@@ -56,7 +57,7 @@
                     showToast('Please login to add items to your cart.', 'error');
                     setTimeout(() => {
                         window.location.href = "{{ route('login') }}";
-                    }, 500); // 2-second delay
+                    }, 500); 
                     return;
                 }
 

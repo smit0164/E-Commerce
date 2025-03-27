@@ -38,6 +38,8 @@ Route::middleware("auth:customer")->group(function () {
         return view('pages.customer.products.order-success', ['order' => session('order')]);
     })->name('order.success');
     Route::get('/order/{id}',[CheckoutController::class, 'showOrdersDetails'])->name('show.oreder.details');
+    Route::get('/showorder/{userid}',[HomeController::class,'showOrderHistory'])->name('show.order.history');
+    Route::get('/customer/orders/{orderId}/details', [HomeController::class, 'getOrderDetails'])->name('customer.order.details');
     Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });
 
