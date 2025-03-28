@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 </head>
 <body>
-    <x-users.header />
+    <x-users.header/>
 
     <x-users.navbar :categories="$categories" />
     <main>

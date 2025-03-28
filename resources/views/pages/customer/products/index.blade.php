@@ -2,19 +2,16 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <form id="filterForm" method="GET" action="{{ route('products.index') }}"
-            class="grid grid-cols-1 md:grid-cols-[280px,1fr] gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-[280px,1fr] gap-8">
             <!-- Sidebar -->
             <aside class="bg-white p-6 rounded-lg shadow-md">
-                <!-- Categories -->
                 <h3 class="text-lg font-semibold text-gray-800 mb-5 uppercase tracking-wide">Categories</h3>
                 <div class="space-y-3">
                     @foreach ($categories as $category)
-                        <div class="flex items-center group">
-                            <input type="checkbox" name="categories[]" value="{{ $category->id }}"
+                        <div class="flex items-center group form-check">
+                            <input type="checkbox" value="{{ $category->id }}"
                                 id="category-{{ $category->id }}"
-                                class="text-primary focus:ring-2 focus:ring-primary/20 rounded-sm cursor-pointer transition-colors"
-                                {{ in_array($category->id, (array) request('categories', [])) ? 'checked' : '' }}>
+                                class="text-primary focus:ring-2 focus:ring-primary/20 rounded-sm cursor-pointer transition-colors form-check-input category-filter">
                             <label for="category-{{ $category->id }}"
                                 class="text-gray-600 ml-3 cursor-pointer group-hover:text-gray-800 transition-colors flex-1">
                                 {{ $category->name }}
@@ -24,72 +21,95 @@
                     @endforeach
                 </div>
 
-                <!-- Price Filter -->
                 <h3 class="text-lg font-semibold text-gray-800 mt-8 mb-5 uppercase tracking-wide">Price Range</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" name="min" id="min" value="{{ request('min') }}"
+                    <input type="number" name="price_min" id="price_min"
                         class="w-full border-gray-300 focus:border-primary rounded-lg focus:ring-2 focus:ring-primary/20 px-3 py-2 shadow-sm placeholder-gray-400"
                         placeholder="Min" min="0" step="0.01" aria-label="Minimum Price">
-                    <input type="number" name="max" id="max" value="{{ request('max') }}"
+                    <input type="number" name="price_max" id="price_max"
                         class="w-full border-gray-300 focus:border-primary rounded-lg focus:ring-2 focus:ring-primary/20 px-3 py-2 shadow-sm placeholder-gray-400"
                         placeholder="Max" min="0" step="0.01" aria-label="Maximum Price">
-                </div>
-                <div class="mt-4 flex space-x-3">
-                    <button type="submit"
-                        class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors">
-                        Apply Filters
-                    </button>
-                    <a href="{{ route('products.index') }}"
-                        class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors text-center">
-                        Clear Filters
-                    </a>
                 </div>
             </aside>
 
             <!-- Products Section -->
             <section class="pb-8">
-                <!-- Responsive Product Grid -->
-                @if ($products->count() > 0)
-                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach ($products as $product)
-                            <x-users.product-card :product="$product" />
-                        @endforeach
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="mt-8">
-                        {{ $products->links('pagination::simple-tailwind') }} <!-- Changed to simple-tailwind -->
-                    </div>
-                @else
-                    <p class="text-gray-600 text-center">No products found matching your filters.</p>
-                @endif
+                <div id="loading" class="hidden text-center py-4">Loading...</div>
+                <div id="product-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @include('pages.customer.products.partials.product_grid')
+                </div>
+                <div id="pagination" class="mt-8">
+                    {{ $products->links('pagination::simple-tailwind') }}
+                </div>
             </section>
-        </form>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('filterForm');
-            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-            const priceInputs = form.querySelectorAll('input[type="number"]');
-            let debounceTimeout;
+    $(document).ready(function() {
 
-            // Auto-submit on checkbox change
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    form.submit();
-                });
+        function applyFilters(page = 1) {
+            $('#loading').removeClass('hidden');
+            let categories = [];
+            $('.category-filter:checked').each(function() {
+                categories.push($(this).val());
             });
+            let priceMin = $('#price_min').val();
+            let priceMax = $('#price_max').val();
+            let url = "{{ route('products.index') }}?page=" + page;
+            if (categories.length) url += "&categories=" + categories.join(",");
+            if (priceMin) url += "&price_min=" + priceMin;
+            if (priceMax) url += "&price_max=" + priceMax;
+            window.history.pushState({}, document.title, url);
+            $.ajax({
+                url: "{{ route('products.filter') }}",
+                method: 'POST',
+                data: {
+                    categories: categories,
+                    price_min: priceMin,
+                    price_max: priceMax,
+                    page: page, // Include the page number
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#product-grid').html(response.html);
+                    $('#pagination').html(response.pagination);
+                    $('#loading').addClass('hidden');
+                },
+                error: function(xhr) {
+                    console.log('Error:', xhr);
+                    $('#loading').addClass('hidden');
+                }
+            });
+        }
 
-            // Debounce price input changes
-            priceInputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    clearTimeout(debounceTimeout);
-                    debounceTimeout = setTimeout(() => {
-                        form.submit();
-                    }, 500); // 500ms delay
-                });
-            });
+        
+        $('.category-filter, #price_min, #price_max').on('change',  function(){applyFilters()});
+        $(document).on('click', '#pagination a', function(e) {
+            e.preventDefault();
+            let url = $(this).attr('href');
+            let page = new URL(url).searchParams.get('page');
+            applyFilters(page);
         });
+        function setInitialFilterState() {
+            const urlParams = new URLSearchParams(window.location.search);
+            console.log(urlParams);
+
+
+            const categories = urlParams.get('categories') ? urlParams.get('categories').split(',') : [];
+            const priceMin = urlParams.get('price_min') || '';
+            const priceMax = urlParams.get('price_max') || '';
+
+            // Set checkboxes
+            $('.category-filter').each(function() {
+                $(this).prop('checked', categories.includes($(this).val()));
+            });
+
+            // Set price inputs
+            $('#price_min').val(priceMin);
+            $('#price_max').val(priceMax);
+        }
+        setInitialFilterState();
+    });
     </script>
 @endsection

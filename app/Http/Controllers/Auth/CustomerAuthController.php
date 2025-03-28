@@ -74,7 +74,6 @@ class CustomerAuthController extends Controller
             Auth::guard('customer')->logout();
             $request->session()->forget('customer_auth');
             $request->session()->regenerateToken();
-
             return redirect()->route('home')->with('success', 'Logged out successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to logout. Please try again.');

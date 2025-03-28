@@ -36,7 +36,7 @@ class CategoryController extends Controller
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('categories', $imageName, 'public');
+                $image->storeAs(Category::IMAGE_PATH, $imageName, 'public');
             }
 
             Category::create([

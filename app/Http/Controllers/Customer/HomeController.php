@@ -26,16 +26,16 @@ class HomeController extends Controller
     public function show($slug)
     {
         try {
-            // Fetch the category by slug
-            $category = Category::where('slug', $slug)->firstOrFail();
-
-            // Query products separately with pagination
-            $products = $category->products()
-                ->where('status', 1)
-                ->latest() // Optional: sort by latest
-                ->simplePaginate(4); // Paginate 4 products per page
-
-            return view('pages.customer.products.category-products', compact('category', 'products'));
+            $category = Category::where('slug', $slug)
+            ->with(['products' => function($query) {
+                $query->where('status', 1)
+                      ->orderBy('id', 'desc'); // Optional: sort by latest
+            }])
+            ->firstOrFail();
+        
+        // Get the products with pagination
+          $products = $category->products()->simplePaginate(4);  // Paginate 4 products per page
+          return view('pages.customer.products.category-products', compact('category', 'products'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong!');
         }
@@ -43,16 +43,28 @@ class HomeController extends Controller
     public function showOrderHistory(Customer $userid)
     {
         // Eager load orders with shippingAddress, billingAddress, and orderItems with their products
-        $userid->load('orders.shippingAddress', 'orders.billingAddress', 'orders.orderItems.product');
+        $userid->load([
+            'orders.shippingAddress',
+            'orders.billingAddress',
+            'orders.orderItems.product'
+        ]);
+        
         
         return view('pages.customer.products.orders-history', compact('userid'));
     }
     public function getOrderDetails($orderId)
     {
-        $order = Order::where('id', $orderId)
-            ->with('shippingAddress', 'billingAddress', 'orderItems')
-            ->firstOrFail();
-    
-        return response()->json($order);
+        try {
+            $order = Order::where('id', $orderId)
+                ->with('shippingAddress', 'billingAddress', 'orderItems')
+                ->firstOrFail();
+            return response()->json($order);
+        }catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+    
 }

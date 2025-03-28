@@ -52,7 +52,7 @@
                                         <td class="px-6 py-4">
                                             <button 
                                                 class="view-details text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
-                                                onclick= "showDetails({{ $order->id }})"
+                                                data-order-id={{$order->id}}
                                             >
                                                 View Details
                                             </button>
@@ -69,7 +69,7 @@
             <!-- Modal with Static Template -->
             <div id="order-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex items-center justify-center z-50">
                 <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
-                    <button onclick="hideDetails()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                    <button  class="closeModal absolute top-4 right-4 text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                     <div class="mt-6 flex justify-end">
-                        <button onclick="hideDetails()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                        <button class="closeModal px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
                             Close
                         </button>
                     </div>
@@ -126,37 +126,14 @@
     </div>
 
     <script>
-        let currentOrderId = null;
-        function hideDetails() {
-                const modal = $('#order-modal');
-                modal.addClass('hidden');
-                currentOrderId = null;
-                $('tr').removeClass('bg-indigo-100');
-        }
-        function showDetails(orderId) {
+        
+        $(document).ready(function(){
+            let currentOrderId = null;  
+            $('.view-details').on('click',function(){
                 const modal = $('#order-modal');
                 const detailsContent = $('#details-content');
-
-                // Highlight the selected row
-                $('tr').each(function() {
-                    $(this).removeClass('bg-indigo-100');
-                    const button = $(this).find('.view-details');
-                    if (button.length && button.data('order-id') == orderId) {
-                        $(this).addClass('bg-indigo-100');
-                    }
-                });
-
-                // Reset modal to loading state
-                $('#shipping-address').html('Loading...');
-                $('#billing-address').html('Loading...');
-                $('#payment-status').html('Loading...');
-                $('#order-created').html('Loading...');
-                $('#order-items-body').html('<tr><td colspan="4" class="px-4 py-2 text-center text-gray-600">Loading items...</td></tr>');
-
-                // Show the modal
-                modal.removeClass('hidden');
-
-                // jQuery AJAX request
+                const orderId=$(this).data('order-id');
+                console.log(orderId);
                 $.ajax({
                     url: "{{ route('customer.order.details', ['orderId' => 'ORDER_ID']) }}".replace('ORDER_ID', orderId),
                     method: 'GET',
@@ -167,12 +144,17 @@
                     success: function(order) {
                         currentOrderId = orderId;
                         updateModal(order);
+                        showToast('Order Loaded Succesfully','success');
+                        
                     },
                     error: function(xhr, status, error) {
+                        showToast(error,'error');
                         $('#details-content').html(`<p class="text-red-600">Error loading order details: ${xhr.status} - ${error}</p>`);
                     }
                 });
-            }
+                modal.removeClass('hidden');
+
+            });
             function updateModal(order) {
                 const shippingText = order.shipping_address ?
                     `${order.shipping_address.full_name || ''}<br>` +
@@ -213,9 +195,16 @@
                         tbody.append(row);
                     });
                 }
-            }
-
+            };
+            $('.closeModal').on('click',function(){
+                const modal = $('#order-modal');
+                modal.addClass('hidden');
+            })
            
+              
+        });
+           
+    
     </script>
 </div>
 @endsection

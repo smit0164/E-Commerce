@@ -13,6 +13,8 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $totalRevenue = Order::sum('total_amount');
         $totalCustomers = Customer::count(); // Get total customers from the `customers` table
+
+        //pending, shippied and delivered with only one query
         $pendingOrders = Order::where('status', 'pending')->count();
         $shippedOrders = Order::where('status', 'shipped')->count();
         $deliveredOrders = Order::where('status', 'delivered')->count();

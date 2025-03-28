@@ -23,7 +23,7 @@
         <!-- Main Navigation Links -->
         <div class="flex items-center justify-between flex-grow md:pl-12 py-5">
             <div class="flex items-center space-x-6 capitalize">
-                <a href="/" class="text-gray-200 hover:text-white transition">Home</a>
+                <a href="{{ route('home') }}" class="text-gray-200 hover:text-white transition">Home</a>
                 <a href="{{ route('products.index') }}" class="text-gray-200 hover:text-white transition">Shop</a>
                 <a href="/contact" class="text-gray-200 hover:text-white transition">Contact Us</a>
             </div>

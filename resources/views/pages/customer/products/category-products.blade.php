@@ -12,7 +12,7 @@
 
             @if ($products->isNotEmpty())
                 <!-- Product Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
+                <div class="grid  sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
                     @foreach ($products as $product)
                         <x-users.product-card :product="$product" />
                     @endforeach
@@ -20,7 +20,7 @@
 
                 <!-- Pagination -->
                 @if ($products->hasPages())
-                    <div class="mt-10 flex justify-center">
+                    <div class="mt-2">
                         {{ $products->links('pagination::simple-tailwind') }}
                     </div>
                 @endif

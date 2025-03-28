@@ -19,7 +19,7 @@ function staticBlockImage($slug, $imagaPath)
 }
 
 function staticBlock($slug){
-     $temp=StaticBlock::where('slug', $slug)->where('is_active', true)->first();
-     return $temp->content;
+     $staticBlock = StaticBlock::where('slug', $slug)->where('is_active', true)->first();
+     return !empty($staticBlock) ? $staticBlock->content : "";
 }
 

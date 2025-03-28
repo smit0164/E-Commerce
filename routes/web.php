@@ -13,7 +13,8 @@ Route::get('/category/{slug}', [HomeController::class, 'show'])->name('category.
 
 Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [CustomerProductController::class, 'show'])->name('products.show');
-
+Route::post('/products/filter', [CustomerProductController::class, 'filter'])->name('products.filter');
+Route::get('/search', [CustomerProductController::class, 'search'])->name('products.search');
 
 Route::middleware("guest:customer")->group(function () {
     Route::get('register', [CustomerAuthController::class, 'showRegisterForm'])->name('register');

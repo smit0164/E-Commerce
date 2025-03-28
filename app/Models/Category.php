@@ -11,6 +11,8 @@ class Category extends Model
     protected $fillable = ['name', 'slug', 'image','status'];
     protected $dates = ['deleted_at'];
 
+    const IMAGE_PATH = "categories";
+
     public function products()
     {
         return $this->belongsToMany(Product::class, 'product_category', 'category_id', 'product_id');
