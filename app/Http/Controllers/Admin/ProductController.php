@@ -12,16 +12,59 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Fetch only non-deleted products with categories
-            $products = Product::with('categories')->latest()->simplePaginate(5);
+            $query = Product::query();
+    
+            if ($request->has('search')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->search . '%')
+                      ->orWhereHas('categories', function ($q) use ($request) {
+                          $q->where('name', 'like', '%' . $request->search . '%');
+                      });
+                });
+            }
+    
+            if (!empty($request->price_min)) {
+                $query->where('price', '>=', $request->price_min);
+            }
+    
+            if (!empty($request->price_max)) {
+                $query->where('price', '<=', $request->price_max);
+            }
+    
+            if (!empty($request->date_start)) {
+                $query->whereDate('created_at', '>=', $request->date_start);
+            }
+    
+            if (!empty($request->date_end)) {
+                $query->whereDate('created_at', '<=', $request->date_end);
+            }
+    
+            $products = $query->with('categories')->simplePaginate(4);
+    
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('pages.admin.products.partials.product_table', compact('products'))->render(),
+                    'pagination' => (string) $products->links('pagination::simple-tailwind'),
+                ]);
+            }
+    
             return view('pages.admin.products.index', compact('products'));
+    
         } catch (\Exception $e) {
-            return back()->with('error', 'Error loading products: ' . $e->getMessage());
+    
+            // Handle AJAX requests
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Something went wrong! Please try again.'], 500);
+            }
+    
+            // Redirect back with an error message for non-AJAX requests
+            return redirect()->back()->with('error', 'Something went wrong! Please try again.');
         }
     }
+    
 
     public function create()
     {
@@ -35,13 +78,12 @@ class ProductController extends Controller
     
     public function store(ProductRequest $request)
     {
-        
         try {
            
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('products', $imageName, 'public');
+                $image->storeAs(StoragePaths::PRODUCT_IMAGE_PATH, $imageName, 'public');
             }
 
             $product = Product::create([
@@ -49,7 +91,7 @@ class ProductController extends Controller
                 'slug' => $request->slug,
                 'price' => $request->price,
                 'quantity' => $request->quantity,
-                'status' => $request->status ?? 0,
+                'status' => $request->status,
                 'description' => $request->description,
                 'image' => $imageName ?? null,
             ]);
@@ -72,7 +114,7 @@ class ProductController extends Controller
             return back()->with('error', 'Error loading product edit page: ' . $e->getMessage());
         }
     }
-    public function update(UpdateProductRequest $request, $slug)
+    public function update(ProductRequest $request, $slug)
     {
         
         try {
@@ -80,13 +122,13 @@ class ProductController extends Controller
 
             if ($request->hasFile('image')) {
                 if ($product->image) {
-                    $imagePath = 'products/' . $product->image;
+                    $imagePath = StoragePaths::PRODUCT_IMAGE_PATH.$product->image;
                     if (Storage::disk('public')->exists($imagePath)) {
                         Storage::disk('public')->delete($imagePath);
                     }
                 }
                 $imageName = time() . '.' . $request->file('image')->getClientOriginalExtension();
-                $request->file('image')->storeAs('products', $imageName, 'public');
+                $request->file('image')->storeAs(StoragePaths::PRODUCT_IMAGE_PATH, $imageName, 'public');
                 $product->image = $imageName;
             }
 
@@ -95,7 +137,7 @@ class ProductController extends Controller
                 'slug' => $request->slug,
                 'price' => $request->price,
                 'quantity' => $request->quantity,
-                'status' => $request->status ?? 0,
+                'status' => $request->status,
                 'description' => $request->description,
             ]);
 
@@ -148,7 +190,7 @@ class ProductController extends Controller
             $product = Product::onlyTrashed()->where('slug', $slug)->firstOrFail();
 
             if ($product->image) {
-                $imagePath = 'products/' . $product->image;
+                $imagePath = StoragePaths::PRODUCT_IMAGE_PATH . $product->image;
                 if (Storage::disk('public')->exists($imagePath)) {
                     Storage::disk('public')->delete($imagePath);
                 }
@@ -175,14 +217,7 @@ class ProductController extends Controller
             return back()->with('error', 'Error showing product: ' . $e->getMessage());
         }
     }
-
-
-
-    
-
-   
-
-    public function generateSlug(Request $request)
+     public function generateSlug(Request $request)
     {
         try {
             $request->validate([

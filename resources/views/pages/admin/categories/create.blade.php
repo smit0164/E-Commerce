@@ -6,12 +6,6 @@
 <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
     <h2 class="text-xl font-semibold text-gray-900 mb-4">Add Category</h2>
 
-    @if (session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <form  id="categoryFormNew" action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data" >
         @csrf
         <div class="mb-3">
@@ -37,7 +31,7 @@
                    value="{{ old('slug') }}"
                    class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 
                           hover:border-indigo-400 focus:border-indigo-500 focus:bg-white focus:shadow-md focus:outline-none 
-                          transition-all duration-200 ease-in-out placeholder-gray-400" 
+                          transition-all duration-200 ease-in-out placeholder-gray-400 " 
                     placeholder="Slug will appear here"
                    readonly>
             @error('slug')
@@ -151,7 +145,6 @@ $(document).ready(function () {
             },
             image: {
                 required: true,
-                accept: 'image/jpeg,image/png,image/jpg'
             }
         },
         messages: {
@@ -162,7 +155,6 @@ $(document).ready(function () {
             },
             image: {
                 required: 'Image is required',
-                accept: 'Only JPG, JPEG, or PNG files are allowed'
             }
         },
         errorClass: "text-red-500 text-xs mt-1",

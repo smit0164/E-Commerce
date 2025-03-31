@@ -29,14 +29,14 @@ class CartController extends Controller
 
             $productIds = array_column($cartItems, 'product_id');
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
+           
             $cartItems = array_map(function ($cartItem) use ($products) {
                 $product = $products[$cartItem['product_id']] ?? null;
                 return [
                     'id' => $cartItem['product_id'],
-                    'name' => $product?->name ?? 'Unknown Product',
-                    'image' => $product?->image ?? 'default.jpg',
-                    'availability' => $product && $product->stock > 0 ? 'In Stock' : 'Out of Stock',
+                    'name' => $product->name ?? 'Unknown Product',
+                    'image' => $product->image ?? 'default.jpg',
+                    'availability' => $product && $product->quantity > 0 ? 'In Stock' : 'Out of Stock',
                     'quantity' => $cartItem['quantity'],
                     'price' => $product?->price ?? 0,
                 ];

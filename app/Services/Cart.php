@@ -33,6 +33,7 @@ class Cart
             ];
         }
         Session::put($this->sessionKey, $cart);
+        
         return $cart;
     }
     

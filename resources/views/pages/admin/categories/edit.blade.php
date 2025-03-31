@@ -4,11 +4,6 @@
     <div class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Edit Category: {{ $category->name }}</h2>
 
-        @if (session('error'))
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
 
         <form id="edit-category-form" action="{{ route('admin.categories.update', $category->slug) }}" method="POST"
             enctype="multipart/form-data">
@@ -62,7 +57,7 @@
                     <div id="image-preview" class="mt-2"></div>
                     <div class="mb-4" id="current-image">
                         @if ($category->image)
-                            <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}"
+                            <img src="{{ $category->getCategoryImageUrl() }}"  alt="{{ $category->name }}"
                                 class="max-w-[150px] h-auto rounded-md shadow-sm">
                         @else
                             <p class="text-gray-500">No current image</p>

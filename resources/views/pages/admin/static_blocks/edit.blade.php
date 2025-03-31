@@ -5,7 +5,7 @@
 @section('content')
   
     <h1 class="text-2xl font-bold mb-4">Edit Static Block</h1>
-    <form id="staticEditBlockForm" action="{{ route('admin.static_blocks.update', $staticBlock->id) }}" method="POST" class="bg-white p-6 rounded shadow">
+    <form id="staticEditBlockForm" action="{{ route('admin.static_blocks.update', $staticBlock->slug) }}" method="POST" class="bg-white p-6 rounded shadow">
         @csrf
         @method('PUT')
 
@@ -43,8 +43,11 @@
                 <span class="text-gray-700 text-sm font-bold mr-2">Status:</span>
                 <div class="relative">
                     <select name="is_active" class="appearance-none border border-gray-300 rounded px-3 py-2 text-sm pr-8 bg-white">
-                        <option value="1" {{ old('is_active', $staticBlock->is_active) == 1 ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ old('is_active', $staticBlock->is_active) == 0 ? 'selected' : '' }}>Inactive</option>
+
+
+                        <option value="active" {{ old('is_active', $staticBlock->is_active) === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ old('is_active',$staticBlock->is_active) === 'inactive' ? 'selected' : '' }}>Inactive</option>
+
                     </select>
                 </div>
             </label>

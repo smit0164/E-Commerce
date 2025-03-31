@@ -6,16 +6,9 @@
 <div class="bg-white p-6 rounded-xl shadow-md max-w-4xl mx-auto mt-6">
     <h2 class="text-2xl font-semibold text-gray-900 mb-6">Edit Product: {{ $product->name }}</h2>
 
-    @if (session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <form id="edit-product-form" action="{{ route('admin.products.update', $product->slug) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
-        <input type="hidden" id="product-id" name="product_id" value="{{ $product->id }}">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Left Column -->
@@ -97,9 +90,8 @@
                             class="w-full px-3 py-2 border rounded-md bg-gray-50 
                                    hover:border-indigo-400 focus:border-indigo-500 focus:bg-white focus:shadow-md focus:outline-none 
                                    transition-all duration-200 ease-in-out @error('status') border-red-500 @enderror">
-                        <option value="" disabled {{ old('status') === null ? 'selected' : '' }}>Select status</option>
-                        <option value="1" {{ old('status', $product->status) == 1 ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ old('status', $product->status) == 0 ? 'selected' : '' }}>Inactive</option>
+                        <option value="active" {{ old('status', $product->status) == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ old('status', $product->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                     @error('status')
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -158,7 +150,7 @@
                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
                            <div class="mb-2" id="current-image">
                             @if ($product->image)
-                                <img src="{{ asset('storage/products/' . $product->image) }}" 
+                                <img src="{{ $product->getProductImageUrl() }}" 
                                      alt="{{ $product->name }}"
                                      class="max-w-[150px] h-auto rounded-md shadow-sm">
                             @else
@@ -280,10 +272,7 @@ $(document).ready(function() {
                 required: true,
                 minlength: 5
             },
-            image: {
-                required: false, // Optional on edit
-                accept: 'image/jpeg,image/png,image/jpg'
-            }
+           
         },
         messages: {
             name: {
@@ -312,9 +301,7 @@ $(document).ready(function() {
                 required: 'Description is required',
                 minlength: 'Description must be at least 5 characters'
             },
-            image: {
-                accept: 'Only JPG, JPEG, or PNG files are allowed'
-            }
+            
         },
         errorClass: 'text-red-500 text-xs mt-1',
         errorElement: 'div',

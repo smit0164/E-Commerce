@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use App\Models\StaticBlock;
 class StaticBlockRequest extends FormRequest
 {
     /**
@@ -21,11 +21,16 @@ class StaticBlockRequest extends FormRequest
      */
     public function rules()
     {
+        $staticBlockId = $this->route('slug') 
+        ?StaticBlock::where('slug', $this->route('slug'))->value('id') 
+        : null;
         return [
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|unique:static_blocks,slug|max:255',
-            'content' => 'required|string',
-            'is_active' => 'nullable|in:0,1',
+            'title' => 'required|string|max:255|unique:static_blocks,title,'. $staticBlockId,
+            'slug' => 'required|string|max:255|unique:static_blocks,slug,'. $staticBlockId,
+            'content' => $this->isMethod('put')
+            ?'nullable':
+            'required|string',
+            'is_active' => 'nullable|in:active,inactive',
         ];
     }
 }

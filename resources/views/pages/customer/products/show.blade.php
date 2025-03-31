@@ -39,10 +39,15 @@
             <!-- Full-width Add to Cart Button -->
             <div class="mt-6">
                 @if($product->quantity > 0)
-                    <button class="bg-primary border border-primary text-white px-6 py-2 font-medium rounded-lg uppercase w-full flex items-center justify-center gap-2 
-                    hover:bg-transparent hover:text-primary transition-all duration-200">
-                        <i class="fa-solid fa-bag-shopping"></i> Add to Cart
-                    </button>
+                <button data-cart-action="add" 
+                data-product-id="{{ $product->id }}"
+                class="w-full flex items-center justify-center gap-2 px-6 py-2 font-medium text-white uppercase rounded-lg 
+                {{ $product->quantity > 0 ? 'bg-primary hover:bg-transparent hover:text-primary border border-primary transition-all' : 'bg-gray-400 opacity-50 cursor-not-allowed' }}"
+                {{ $product->quantity == 0 ? 'disabled' : '' }}>
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span>Add to Cart</span>
+                <i class="fa-solid fa-spinner fa-spin hidden"></i>
+        </button>
                 @else
                     <button class="w-full bg-gray-300 text-gray-600 text-xl font-bold px-6 py-3 rounded-lg cursor-not-allowed" disabled>
                         Out of Stock

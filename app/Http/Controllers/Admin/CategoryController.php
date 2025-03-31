@@ -13,16 +13,48 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Fetch only non-deleted categories
-            $categories = Category::latest()->simplePaginate(5);
+            $query = Category::query();
+    
+            if ($request->has('search')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->search . '%');
+                });
+            }
+    
+            if (!empty($request->date_start)) {
+                $query->whereDate('created_at', '>=', $request->date_start);
+            }
+    
+            if (!empty($request->date_end)) {
+                $query->whereDate('created_at', '<=', $request->date_end);
+            }
+    
+            $categories = $query->latest()->simplePaginate(4);
+    
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('pages.admin.categories.partials.categories_table', compact('categories'))->render(),
+                    'pagination' => (string) $categories->links('pagination::simple-tailwind'),
+                ]);
+            }
+    
             return view('pages.admin.categories.index', compact('categories'));
+            
         } catch (\Exception $e) {
-            return back()->with('error', 'Error loading categories: ' . $e->getMessage());
+    
+            // Handle AJAX requests separately
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Something went wrong! Please try again.'], 500);
+            }
+    
+            // Redirect back with an error message for non-AJAX requests
+            return redirect()->back()->with('error', 'Something went wrong! Please try again.');
         }
     }
+    
 
 
     public function create()
@@ -32,11 +64,13 @@ class CategoryController extends Controller
 
     public function store(CategoryRequest $request)
     {
+
         try {
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '.' . $image->getClientOriginalExtension();
-                $image->storeAs(Category::IMAGE_PATH, $imageName, 'public');
+                $image->storeAs(StoragePaths::CATEGORY_IMAGE_PATH, $imageName, 'public');
+
             }
 
             Category::create([
@@ -76,20 +110,20 @@ class CategoryController extends Controller
         }
     }
 
-    public function update(UpdateCategoryRequest $request, $slug)
+    public function update(CategoryRequest $request, $slug)
     {
         try {
             $category = Category::where('slug', $slug)->firstOrFail();
 
             if ($request->hasFile('image')) {
                 if ($category->image) {
-                    $imagePath = 'categories/' . $category->image;
+                    $imagePath = StoragePaths::CATEGORY_IMAGE_PATH . $category->image;
                     if (Storage::disk('public')->exists($imagePath)) {
                         Storage::disk('public')->delete($imagePath);
                     }
                 }
                 $imageName = time() . '.' . $request->image->extension();
-                $request->image->storeAs('categories', $imageName, 'public');
+                $request->image->storeAs(StoragePaths::CATEGORY_IMAGE_PATH, $imageName, 'public');
                 $category->image = $imageName;
             }
 
@@ -169,7 +203,7 @@ class CategoryController extends Controller
         
         try {
             // Fetch only soft-deleted categories
-            $categories = Category::onlyTrashed()->latest()->simplePaginate(5);
+            $categories = Category::onlyTrashed()->latest()->simplePaginate(4);
             return view('pages.admin.categories.trashed', compact('categories'));
         } catch (\Exception $e) {
             return back()->with('error', 'Error loading trashed categories: ' . $e->getMessage());
@@ -193,7 +227,7 @@ class CategoryController extends Controller
             $category = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
             
             if ($category->image) {
-                $imagePath = 'categories/' . $category->image;
+                $imagePath = StoragePaths::CATEGORY_IMAGE_PATH . $category->image;
                 if (Storage::disk('public')->exists($imagePath)) {
                     Storage::disk('public')->delete($imagePath);
                 }

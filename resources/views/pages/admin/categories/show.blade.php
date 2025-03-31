@@ -48,7 +48,7 @@
             <div class="space-y-2 md:col-span-2">
                 <label class="block text-gray-700 font-medium">Image</label>
                 <div class="bg-white border border-gray-200 rounded-lg p-4 flex justify-center">
-                    <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}" class="max-w-[300px] h-auto rounded-md shadow-sm">
+                    <img src="{{ $category->getCategoryImageUrl() }}" alt="{{ $category->name }}" class="max-w-[300px] h-auto rounded-md shadow-sm">
                 </div>
             </div>
         </div>

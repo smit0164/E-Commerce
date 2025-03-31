@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Product;
 
 class ProductRequest extends FormRequest
 {
@@ -14,16 +15,22 @@ class ProductRequest extends FormRequest
     public function rules()
     {
 
+        $productId = null;
+
+        if ($this->route('slug')) {
+            $productId = Product::where('slug', $this->route('slug'))->value('id');
+        }
+       
         return [
-            'name' => 'required|string|max:255|unique:products,name',
-            'slug' => 'required|string|max:255|unique:products,slug',
+            'name' => 'required|string|max:255|unique:products,name,' . $productId,
+            'slug' => 'required|string|max:255|unique:products,slug,' . $productId,
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:1',
-            'status' => 'required|boolean',
-            'description' => 'required|string',
+            'status' => 'required|in:active,inactive',
+            'description' => 'nullable|string',
             'category_id' => 'required|array|min:1',
             'category_id.*' => 'exists:categories,id',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => ($this->isMethod('post') ? 'required' : 'nullable') . '|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ];
     }
 }

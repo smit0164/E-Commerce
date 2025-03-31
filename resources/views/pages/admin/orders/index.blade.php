@@ -8,81 +8,90 @@
         Manage Orders
     </h2>
 
-    <!-- Success/Error Messages -->
-  
-    
-    <!-- Orders Table -->
-    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
-        <table class="min-w-full bg-white">
-            <thead class="bg-gray-100 text-gray-600">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Order ID</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Total</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 text-gray-700">
-                @forelse ($orders as $order)
-                    <tr class="hover:bg-gray-50 transition duration-200">
-                        <td class="px-6 py-5 font-medium">#{{ $order->id }}</td>
-                        <td class="px-6 py-5">{{ $order->customer->name }}</td>
-                        <td class="px-6 py-5">₹{{ number_format($order->total_amount, 2) }}</td>
-                        <td class="px-6 py-5">
-                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white 
-                                @if($order->status == 'pending') bg-yellow-500 
-                                @elseif($order->status == 'shipped') bg-sky-500 
-                                @elseif($order->status == 'delivered') bg-green-500 
-                                @endif rounded-full">
-                                <i class="fas fa-circle mr-1.5"></i> {{ ucfirst($order->status) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-5">{{ $order->created_at->format('M d, Y') }}</td>
-                        <td class="px-6 py-5 flex space-x-4">
-                            <a href="{{ route('admin.orders.show', $order->id) }}" class="text-indigo-600 hover:text-indigo-800 transition" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('admin.orders.edit', $order->id) }}" class="text-blue-600 hover:text-blue-800 transition" title="Edit Status">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-5 text-center text-gray-500">No orders found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Search Input -->
+        <div>
+            <label for="search-orders" class="block text-sm font-medium text-gray-700 mb-1">Search Orders</label>
+            <div class="relative">
+                <input type="text" id="search-orders" name="search" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Search by order ID or customer...">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+         <!-- Status Dropdown -->
+         <div>
+            <label for="status-filter-orders" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+            <select id="status-filter-orders" name="status" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+            <div class="flex space-x-2">
+                <input type="date" id="date_start-orders" name="date_start" class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                <input type="date" id="date_end-orders" name="date_end" class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+        </div>
     </div>
-      
-        <div class="mt-2">
+
+   
+    <div id="orders-table-container">
+        @include('pages.admin.orders.partials.orders_table')
+    </div>
+    <!-- Orders Table -->
+   
+         <div class="mt-2" id="pagination-orders">
             {{ $orders->links('pagination::simple-tailwind') }}
         </div>
     
 </div>
 <script>
-
-    // Function to show Toastr notifications
-    function showNotifications() {
-        @if (session('success'))
-            toastr.success("{{ session('success') }}", "Success");
-        @endif
-
-        @if (session('error'))
-            toastr.error("{{ session('error') }}", "Error");
-        @endif
-    }
-
-    // Run notifications after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof toastr !== 'undefined') {
-            showNotifications();
-        } else {
-            console.error('Toastr is not loaded');
+     $(document).ready(function () {
+        function fetchOrders(page = 1) {
+            let search = $('#search-orders').val();
+            let status = $('#status-filter-orders').val();
+            let dateStart = $('#date_start-orders').val();
+            let dateEnd = $('#date_end-orders').val();
+            $.ajax({
+                url: "{{ route('admin.orders.index') }}",
+                method: "GET",
+                data: {
+                    search: search,
+                    status: status,
+                    date_start: dateStart,
+                    date_end: dateEnd,
+                    page: page
+                },
+                success: function (response) {
+                    $("#orders-table-container").html(response.html);
+                    $('#pagination-orders').html(response.pagination);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                }
+            });
         }
+
+        $('#search-orders, #status-filter-orders, #date_start-orders, #date_end-orders').on('input change', function () {
+            fetchOrders();
+        });
+
+        $(document).on('click', '#pagination-orders a', function (e) {
+            e.preventDefault();
+            console.log("hii");
+            let url = $(this).attr('href');
+            let page = new URL(url).searchParams.get('page');
+            fetchOrders(page);
+        });
+
     });
+
+
+
 </script>
 @endsection

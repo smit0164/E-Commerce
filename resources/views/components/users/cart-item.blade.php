@@ -6,7 +6,7 @@
         <div class="ml-4">
             <h3 class="text-sm font-semibold text-gray-800">{{ $name }}</h3>
             <p class="text-xs text-gray-500">Availability: 
-                <span class="text-green-500 font-medium">{{ $availability }}</span>
+                <span class="text-red-500 font-medium">{{ $availability }}</span>
             </p>
         </div>
     </div>

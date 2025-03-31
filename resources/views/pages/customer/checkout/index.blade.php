@@ -4,24 +4,6 @@
     <div class="w-full max-w-6xl mx-auto py-12 px-4">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Complete Your Order</h2>
 
-        <!-- Validation Errors Summary -->
-        @if ($errors->any())
-            <div style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 10px;">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <!-- Flashed Error -->
-        @if (session('error'))
-            <div style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 10px;">
-                {{ session('error') }}
-            </div>
-        @endif
-
         @if (empty($cartItems))
             <p class="text-gray-600 text-center">
                 Your cart is empty, friend!
@@ -254,10 +236,15 @@
                         required: function() {
                             return $('#shipping_address_id').length && $('#shipping_address_id').val() === '';
                         }
+                        //This rule checks if the user must select an address from the dropdown.
+                        //If the dropdown doesn’t exist (new user), this rule is skipped entirely.
                     },
                     'shipping[address_line1]': {
                         required: function() { return $('#shipping_address_id').val() === 'new' || !$('#shipping_address_id').length; },
                         minlength: 5
+                        // Ensures the address_line1 field is filled out only when a new shipping address is needed.
+                        // $('#shipping_address_id').val() === 'new': True if the user selects "Add a New Shipping Address" from the dropdown.
+                        // !$('#shipping_address_id').length: True if there’s no dropdown (e.g., for new users who don’t have saved addresses).
                     },
                     'shipping[city]': {
                         required: function() { return $('#shipping_address_id').val() === 'new' || !$('#shipping_address_id').length; },

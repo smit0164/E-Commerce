@@ -43,8 +43,8 @@
             <div class="space-y-2">
                 <label class="block text-gray-700 font-medium">Status</label>
                 <p class="text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2">
-                    <span class="{{ $product->status ? 'text-green-600' : 'text-red-600' }}">
-                        {{ $product->status ? 'Active' : 'Inactive' }}
+                    <span class="{{ $product->status=="active" ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $product->status=='active' ? 'Active' : 'Inactive' }}
                     </span>
                 </p>
             </div>

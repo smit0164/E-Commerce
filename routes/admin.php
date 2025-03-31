@@ -56,7 +56,7 @@ Route::middleware('auth:admin')->group(function () {
             // List active products
             Route::get('/', [ProductController::class, 'index'])->name('admin.products.index'); // Updated name to 'admin.products.index'
             Route::get('/trashed', [ProductController::class, 'trashed'])->name('admin.products.trashed');
-
+           
             // Create product
             Route::get('/create', [ProductController::class, 'create'])->name('admin.products.create');
             Route::post('/store', [ProductController::class, 'store'])->name('admin.products.store');
@@ -90,11 +90,21 @@ Route::middleware('auth:admin')->group(function () {
         
         Route::prefix('static-blocks')->group(function () {
             Route::get('/', [StaticBlockController::class, 'index'])->name('admin.static_blocks.index');
+
+            Route::delete('/{slug}', [StaticBlockController::class, 'destroy'])->name('admin.static_blocks.destroy');
+            Route::post('/{slug}/restore', [StaticBlockController::class, 'restore'])->name('admin.static_blocks.restore');
+            Route::get('/trashed', [StaticBlockController::class, 'trashed'])->name('admin.static_blocks.trashed');
+            Route::delete('/{slug}/force-delete', [StaticBlockController::class, 'forceDelete'])->name('admin.static_blocks.force-delete');
+
+
+            
             Route::get('/create', [StaticBlockController::class, 'create'])->name('admin.static_blocks.create');
             Route::post('/', [StaticBlockController::class, 'store'])->name('admin.static_blocks.store');
-            Route::get('/{id}/edit', [StaticBlockController::class, 'edit'])->name('admin.static_blocks.edit');
-            Route::put('/{id}', [StaticBlockController::class, 'update'])->name('admin.static_blocks.update');
-            Route::delete('/{id}', [StaticBlockController::class, 'destroy'])->name('admin.static_blocks.destroy');
+
+            Route::get('/{slug}/edit', [StaticBlockController::class, 'edit'])->name('admin.static_blocks.edit');
+            Route::put('/{slug}', [StaticBlockController::class, 'update'])->name('admin.static_blocks.update');
+
+           
             Route::post('/generate-slug', [StaticBlockController::class, 'generateSlug'])->name('admin.static_blocks.generate_slug');
         });
 

@@ -48,6 +48,23 @@
             </main>
         </div>
     </div>
-    
+    <script>
+    function showNotifications() {
+        @if (session('success'))
+            toastr.success("{{ session('success') }}", "Success");
+        @endif
+        @if (session('error'))
+            toastr.error("{{ session('error') }}", "Error");
+        @endif
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof toastr !== 'undefined') {
+            showNotifications();
+        } else {
+            console.error('Toastr is not loaded');
+        }
+    });
+</script>
 </body>
 </html>

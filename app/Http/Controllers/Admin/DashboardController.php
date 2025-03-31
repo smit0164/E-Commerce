@@ -14,10 +14,15 @@ class DashboardController extends Controller
         $totalRevenue = Order::sum('total_amount');
         $totalCustomers = Customer::count(); // Get total customers from the `customers` table
 
-        //pending, shippied and delivered with only one query
-        $pendingOrders = Order::where('status', 'pending')->count();
-        $shippedOrders = Order::where('status', 'shipped')->count();
-        $deliveredOrders = Order::where('status', 'delivered')->count();
+        $orderCounts = Order::selectRaw('status, COUNT(*) as count')
+        ->whereIn('status', ['pending', 'shipped', 'delivered'])
+        ->groupBy('status')
+        ->pluck('count', 'status');
+
+        // Retrieve counts with a default value of 0 if not present
+        $pendingOrders   = $orderCounts->get('pending', 0);
+        $shippedOrders   = $orderCounts->get('shipped', 0);
+        $deliveredOrders = $orderCounts->get('delivered', 0);
         $latestOrders = Order::with('customer')->latest()->take(5)->get();
     
         return view('pages.admin.dashboard', compact(

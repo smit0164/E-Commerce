@@ -93,7 +93,7 @@
                 const $button = $(this);
                 const productId = $button.data('product-id');
                 const $itemRow = $button.closest('.cart-item');
-
+                     
                 $.ajax({
                     url: "{{ route('cart.remove') }}",
                     method: "POST",

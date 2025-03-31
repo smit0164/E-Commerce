@@ -1,7 +1,7 @@
 @extends('layouts.admin.app')
 @section('title', 'Category Management')
 @section('content')
-<div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto my-6">
+<div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold text-gray-900">Manage Categories</h2>
         <div class="flex space-x-4">
@@ -13,70 +13,52 @@
             </a>
         </div>
     </div>
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @forelse ($categories as $category)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-5 whitespace-nowrap">{{ $category->id }}</td>
-                        <td class="px-6 py-5 whitespace-nowrap">
-                            <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}" class="max-w-[50px] h-auto">
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap">{{ $category->name }}</td>
-                        <td class="px-6 py-5 whitespace-nowrap">{{ $category->slug }}</td>
-                        <td class="px-6 py-5 whitespace-nowrap">
-                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white rounded-full 
-                                @if($category->status == 'active') bg-green-500 
-                                @elseif($category->status == 'inactive') bg-red-500 
-                                @else bg-gray-500
-                                @endif">
-                                {{ ucfirst($category->status) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 whitespace-nowrap">{{ $category->created_at->format('M d, Y') }}</td>
-                        <td class="px-6 py-5 whitespace-nowrap flex space-x-4">
-                            <a href="{{ route('admin.categories.show', $category->slug) }}" 
-                               class="text-green-600 hover:text-green-800" 
-                               title="View Products">
-                                <i class="fas fa-eye w-5 h-5"></i>
-                            </a>
-                            <a href="{{ route('admin.categories.edit', $category->slug) }}" 
-                               class="text-indigo-600 hover:text-indigo-800" 
-                               title="Edit">
-                                <i class="fas fa-edit w-5 h-5"></i>
-                            </a>
-                            <button type="button" 
-                                    class="text-red-600 hover:text-red-800" 
-                                    onclick="openDeleteModal('{{ $category->id }}', '{{ $category->slug }}', '{{ $category->name }}')"
-                                    title="Move to Trash">
-                                <i class="fas fa-trash w-5 h-5"></i>
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-6 py-5 text-center text-gray-500">No categories found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+
+    <div class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Search Input -->
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
+                <div class="relative">
+                    <input type="text" 
+                           id="search-categories" 
+                           name="search"
+                           class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" 
+                           placeholder="Search by category...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Date Range -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <div class="flex space-x-2">
+                    <input type="date" 
+                           id="date_start-categories" 
+                           name="date_start"
+                           class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="date" 
+                           id="date_end-categories" 
+                           name="date_end"
+                           class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mt-6">
+
+    <div id="category-table-container">
+        @include('pages.admin.categories.partials.categories_table')
+    </div>
+    
+   
+    <div class="mt-6" id="pagination-categories">
         {{ $categories->links('pagination::simple-tailwind') }}
     </div>
     <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div id="delete-modal-categories" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3 text-center">
                 <h3 class="text-lg leading-6 font-medium text-gray-900">Move Category to Trash</h3>
@@ -108,7 +90,7 @@
 <script>
     // Open Modal
     function openDeleteModal(categoryId, categorySlug, categoryName) {
-        const modal = document.getElementById('delete-modal');
+        const modal = document.getElementById('delete-modal-categories');
         const categoryNameSpan = document.getElementById('delete-category-name');
         const categoryIdInput = document.getElementById('delete-category-id');
         const deleteForm = document.getElementById('delete-category-form');
@@ -121,34 +103,57 @@
 
     // Close Modal
     function closeDeleteModal() {
-        document.getElementById('delete-modal').classList.add('hidden');
+        document.getElementById('delete-modal-categories').classList.add('hidden');
     }
 
     // Close modal when clicking outside
-    document.getElementById('delete-modal').addEventListener('click', function (e) {
+    document.getElementById('delete-modal-categories').addEventListener('click', function (e) {
         if (e.target === this) {
             closeDeleteModal();
         }
     });
 
-    // Function to show Toastr notifications
-    function showNotifications() {
-        @if (session('success'))
-            toastr.success("{{ session('success') }}", "Success");
-        @endif
+    $(document).ready(function () {
+        function fetchCategories(page = 1) {
+           
+            let search = $('#search-categories').val();
+            let dateStart = $('#date_start-categories').val();
+            let dateEnd = $('#date_end-categories').val();
 
-        @if (session('error'))
-            toastr.error("{{ session('error') }}", "Error");
-        @endif
-    }
+            $.ajax({
+                url: "{{ route('admin.categories.index') }}",
+                method: "GET",
+                data: {
+                    search: search,
+                    date_start: dateStart,
+                    date_end: dateEnd,
+                    page: page
+                },
+                success: function (response) {
+                    $("#category-table-container").html(response.html);
 
-    // Run notifications after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof toastr !== 'undefined') {
-            showNotifications();
-        } else {
-            console.error('Toastr is not loaded');
+                    // Update pagination links
+                    $('#pagination-categories').html(response.pagination);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                }
+            });
         }
+
+
+
+    // Add event listeners
+    $('#search-categories,#date_start-categories,#date_end-categories').on('input',function(){
+        fetchCategories();
     });
+    $(document).on('click', '#pagination-categories a', function (e) {
+        e.preventDefault();
+        let url = $(this).attr('href');
+        let page = new URL(url).searchParams.get('page');
+        fetchCategories(page);
+    });
+   });
+
 </script>
 @endsection

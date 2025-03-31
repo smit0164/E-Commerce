@@ -10,10 +10,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category/{slug}', [HomeController::class, 'show'])->name('category.products');
+Route::prefix('products')->name('products.')->group(function () {
+    Route::get('/filter', [CustomerProductController::class, 'index'])->name('filter');
+    Route::get('/', [CustomerProductController::class, 'index'])->name('index');
+    Route::get('/{slug}', [CustomerProductController::class, 'show'])->name('show');
+});
 
-Route::get('/products', [CustomerProductController::class, 'index'])->name('products.index');
-Route::get('/products/{slug}', [CustomerProductController::class, 'show'])->name('products.show');
-Route::post('/products/filter', [CustomerProductController::class, 'filter'])->name('products.filter');
+
+
 Route::get('/search', [CustomerProductController::class, 'search'])->name('products.search');
 
 Route::middleware("guest:customer")->group(function () {

@@ -94,14 +94,14 @@
                             class="w-full px-3 py-2 border rounded-md bg-gray-50 
                                    hover:border-indigo-400 focus:border-indigo-500 focus:bg-white focus:shadow-md focus:outline-none 
                                    transition-all duration-200 ease-in-out @error('status') border-red-500 @enderror">
-                        <option value="" disabled {{ old('status') === null ? 'selected' : '' }}>Select status</option>
-                        <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Inactive</option>
+                        <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ old('status', 'active') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                     @error('status')
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                     @enderror
                 </div>
+                
 
                 <!-- Description -->
                 <div>
@@ -263,7 +263,6 @@ $(document).ready(function() {
             },
             image: {
                 required: true,
-                accept: 'image/jpeg,image/png,image/jpg'
             }
         },
         messages: {
@@ -295,7 +294,6 @@ $(document).ready(function() {
             },
             image: {
                 required: 'Image is required',
-                accept: 'Only JPG, JPEG, or PNG files are allowed'
             }
         },
         errorClass: 'text-red-500 text-xs mt-1',

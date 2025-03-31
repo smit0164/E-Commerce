@@ -3,22 +3,10 @@
 @section('title', 'Create Static Block')
 
 @section('content')
-
-
     <h1 class="text-2xl font-bold mb-4">Create Static Block</h1>
-    <form action="{{ route('admin.static_blocks.store') }}" method="POST" class="bg-white p-6 rounded shadow"  id="staticBlockForm">
-        @csrf
-        @if ($errors->any())
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-        <strong>Whoops! Something went wrong.</strong>
-        <ul class="mt-2">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
 
+    <form action="{{ route('admin.static_blocks.store') }}" method="POST" class="bg-white p-6 rounded shadow" id="staticBlockForm">
+        @csrf
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>
@@ -35,7 +23,7 @@
                 @enderror
             </div>
         </div>
-        
+
         <div class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2">Content</label>
             <textarea name="content" id="summernote" class="w-full @error('content') border-red-500 @enderror" required>{{ old('content') }}</textarea>
@@ -43,31 +31,28 @@
                 <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
             @enderror
         </div>
+
         <div class="mb-4">
             <label class="flex items-center">
                 <span class="text-gray-700 text-sm font-bold mr-2">Status:</span>
                 <div class="relative">
                     <select name="is_active" class="appearance-none border border-gray-300 rounded px-3 py-2 text-sm pr-8 bg-white">
-                        <option value="1" selected>Active</option>
-                        <option value="0">Inactive</option>
+                        <option value="active" {{ old('is_active', 'active') === 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ old('is_active') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
             </label>
         </div>
+
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
-        <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"> 
-            <a href="{{ route('admin.static_blocks.index') }}" >Cancel</a>
-        </button>
+        <a href="{{ route('admin.static_blocks.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">Cancel</a>
     </form>
 
-    
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
-    
 
     <script>
         $(document).ready(function() {
-    
             try {
                 $('#summernote').summernote({
                     height: 300,
@@ -86,7 +71,6 @@
             } catch (e) {
                 console.error('Summernote initialization failed:', e);
             }
-            
 
             // AJAX for slug generation
             $('#title').on('input', function() {
@@ -132,13 +116,13 @@
                         required: "Content is required."
                     }
                 },
-                errorClass: "text-red-500 text-xs italic mt-1",
-                errorElement: "p",
-                highlight: function(element) {
-                    $(element).addClass('border-red-500');
+                errorClass: "text-red-500 text-xs mt-1",
+                errorElement: "span",
+                highlight: function (element) {
+                    $(element).addClass('border-red-500').removeClass('border-gray-300');
                 },
-                unhighlight: function(element) {
-                    $(element).removeClass('border-red-500');
+                unhighlight: function (element) {
+                    $(element).removeClass('border-red-500').addClass('border-gray-300');
                 },
                 submitHandler: function(form) {
                     form.submit();

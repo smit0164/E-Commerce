@@ -12,28 +12,48 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::where('status', 'Active')->withCount('products')->get();
-        
-
-        $query = Product::where('status', 1);
-        if ($request->has('categories')) {
-            $categoryIds = array_filter(explode(',', $request->input('categories')));
-            if (!empty($categoryIds)) {
-                $query->whereHas('categories', function ($q) use ($categoryIds) {
-                    $q->whereIn('categories.id', $categoryIds);
-                });
-            }
+        // Fetch all categories from the database (Active status)
+        $allCategories = Category::where('status', 'Active')->withCount('products')->get();
+    
+        // Initialize the query for products
+        $query = Product::where('status', 'active')->with('categories');
+        $categories=[];
+        // Filter by categories if provided in the request
+        if ($request->has('categories') && !empty($request->categories)) {
+            // Get the selected categories from the URL query string
+            $categories = explode(',', $request->input('categories'));
+            
+            // Apply the filter for categories using `whereHas`
+            $query->whereHas('categories', function ($q) use ($categories) {
+                $q->whereIn('categories.slug', $categories); // Filter by category slugs
+            });
         }
-        $priceMin = $request->input('price_min');
-        $priceMax = $request->input('price_max');
-        if ($priceMin) $query->where('price', '>=', floatval($priceMin));
-        if ($priceMax) $query->where('price', '<=', floatval($priceMax));
-
-        $products = $query->latest()->simplePaginate(6);
-        $products->appends($request->only(['categories', 'price_min', 'price_max']));
-
-        return view('pages.customer.products.index', compact('products', 'categories'));
+    
+        // Filter by price range if provided in the request
+        if ($request->has('price_min') && $request->price_min != '') {
+            $query->where('price', '>=', $request->input('price_min'));
+        }
+        if ($request->has('price_max') && $request->price_max != '') {
+            $query->where('price', '<=', $request->input('price_max'));
+        }
+    
+        // Paginate the products (6 products per page)
+        $perPage = 6;
+        $products = $query->latest()->simplePaginate($perPage);
+    
+        // If the request is an AJAX request, return the updated product grid and pagination links
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('pages.customer.products.partials.product_grid', compact('products'))->render(),
+                'pagination' => (string) $products->links('pagination::simple-tailwind'),
+            ]);
+        }
+        
+    
+        // Return the main view with the filtered products, all categories, and selected categories
+        return view('pages.customer.products.index', compact('products', 'allCategories', 'categories'));
     }
+    
 
     public function show($slug)
     {
@@ -46,67 +66,33 @@ class ProductController extends Controller
         }
     }
 
-    public function filter(Request $request)
-    {
-        $perPage = 6;
-
-        // Build the query
-        $query = Product::where('status', 1)
-            ->with('categories'); // Eager load categories
-
-        // Filter by categories
-        if ($request->has('categories')) {
-            $categoryIds = array_filter((array) $request->input('categories')); // Remove empty values
-            if (!empty($categoryIds)) {
-                $query->whereHas('categories', function ($q) use ($categoryIds) {
-                    $q->whereIn('categories.id', $categoryIds);
-                });
-            }
-        }
-
-        // Filter by price range
-        $priceMin = $request->input('price_min', null);
-        $priceMax = $request->input('price_max', null);
-        if ($priceMin !== null && $priceMax !== null) {
-            $priceMin = floatval($priceMin);
-            $priceMax = floatval($priceMax);
-            if ($priceMin <= $priceMax) {
-                $query->whereBetween('price', [$priceMin, $priceMax]);
-            }
-        } elseif ($priceMin !== null) {
-            $query->where('price', '>=', floatval($priceMin));
-        } elseif ($priceMax !== null) {
-            $query->where('price', '<=', floatval($priceMax));
-        }
-
-        // Paginate filtered products
-        $products = $query->latest()->simplePaginate($perPage);
-        $products->appends($request->only(['categories', 'price_min', 'price_max']));
-
-        // Render the product grid using a Blade partial
-        return response()->json([
-            'html' => view('pages.customer.products.partials.product_grid', compact('products'))->render(),
-            'pagination' => (string) $products->links('pagination::simple-tailwind'),
-        ]);
-    }
+   
+    
 
     public function search(Request $request)
     {
-        $searchTerm = $request->input('search');
-        $query = Product::where('status', 1)
-            ->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
-            });
+            $searchTerm = $request->input('search');
+           
+            $query = Product::where('status', 1)
+                ->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
 
-        $products = $query->latest()->take(5)->get(); // Limit to 5 for modal
-        $total = $query->count(); // Total matching products
+            if ($request->ajax()) {
+                $products = $query->latest()->take(5)->get();
+                $total = $query->count();
 
-        $html = view('pages.customer.products.partials.search_results', compact('products'))->render();
+                $html = view('pages.customer.products.partials.search_results', compact('products'))->render();
 
-        return response()->json([
-            'html' => $html,
-            'hasMore' => $total > 5 // Show "View More" if more than 5 results
-        ]);
+                return response()->json([
+                    'html' => $html,
+                    'hasMore' => $total > 5
+                ]);
+            }
+
+            $products = $query->latest()->simplePaginate(8);
+            return view('pages.customer.products.search_results_button', compact('products', 'searchTerm'));
     }
+
 }

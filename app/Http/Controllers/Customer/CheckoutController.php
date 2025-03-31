@@ -32,7 +32,7 @@ class CheckoutController extends Controller
     {
         // Validate the request with dynamic rules
         $validatedData = $request->validated();
-    
+        
         // Manually add shipping_address_id and billing_address_id to validated data if numeric
         $shippingId = $request->input('shipping_address_id');
         if (is_numeric($shippingId)) {
@@ -47,9 +47,6 @@ class CheckoutController extends Controller
         if (empty($cartItems)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty, friend!');
         }
-    
-        Log::info('Checkout Attempt Started', ['customer_id' => auth('customer')->id()]);
-        Log::info('Validated Data', $validatedData);
     
         try {
             $order = $this->checkoutService->processCheckout($validatedData, $cartItems);

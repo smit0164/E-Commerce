@@ -14,18 +14,38 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-            $query = Order::with('customer')->latest();
-            if ($request->has('status')) {
-                $query->where('status', $request->input('status'));
+        $query = Order::query();
+    
+        if ($request->ajax()) {
+            if ($request->search) {
+                $query->where('id', 'like', "%{$request->search}%")
+                      ->orWhereHas('customer', function ($q) use ($request) {
+                          $q->where('name', 'like', "%{$request->search}%");
+                      });
             }
-
-            $orders = $query->simplePaginate(10);
-            return view('pages.admin.orders.index', compact('orders'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to load orders: ' . $e->getMessage());
+    
+            if ($request->status) {
+                $query->where('status', $request->status);
+            }
+    
+            if ($request->date_start && $request->date_end) {
+                $query->whereBetween('created_at', [$request->date_start, $request->date_end]);
+            }
+    
+            // Eager load 'customer' in AJAX branch to prevent lazy loading errors.
+            $orders = $query->with('customer')->latest()->simplePaginate(5);
+    
+            $html = view('pages.admin.orders.partials.orders_table', compact('orders'))->render();
+            $pagination = view('pagination::simple-tailwind', ['paginator' => $orders])->render();
+    
+            return response()->json(['html' => $html, 'pagination' => $pagination]);
         }
+    
+        // For non-AJAX requests, eager loading is already added.
+        $orders = $query->with('customer')->latest()->simplePaginate(5);
+        return view('pages.admin.orders.index', compact('orders'));
     }
+    
 
     /**
      * Show the details of a specific order.

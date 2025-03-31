@@ -27,18 +27,15 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->id }}</td>
                         <td class="px-6 py-5 whitespace-nowrap">
-                            <img src="{{ asset('storage/categories/' . $category->image) }}" alt="{{ $category->name }}" class="max-w-[50px] h-auto">
+                            <img src="{{ $category->getCategoryImageUrl() }}" alt="{{ $category->name }}" class="max-w-[50px] h-auto">
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->name }}</td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->slug }}</td>
                         <td class="px-6 py-5 whitespace-nowrap">
-                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium text-white rounded-full 
-                                @if($category->status == 'active') bg-green-500 
-                                @elseif($category->status == 'inactive') bg-red-500 
-                                @elseif($category->status == 'draft') bg-yellow-500 
-                                @else bg-gray-500 @endif">
-                                {{ ucfirst($category->status) }}
-                            </span>
+                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium  rounded-full 
+                            {{ $category->status==='active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                             {{ $category->status==='active' ? 'Active' : 'Inactive' }}
+                       </span>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">{{ $category->deleted_at->format('M d, Y H:i') }}</td>
                         <td class="px-6 py-5 whitespace-nowrap flex space-x-4">
@@ -76,26 +73,4 @@
     </div>
 </div>
 
-<!-- Inline JavaScript -->
-<script>
-    // Function to show Toastr notifications
-    function showNotifications() {
-        @if (session('success'))
-            toastr.success("{{ session('success') }}", "Success");
-        @endif
-
-        @if (session('error'))
-            toastr.error("{{ session('error') }}", "Error");
-        @endif
-    }
-
-    // Run notifications after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof toastr !== 'undefined') {
-            showNotifications();
-        } else {
-            console.error('Toastr is not loaded');
-        }
-    });
-</script>
 @endsection
