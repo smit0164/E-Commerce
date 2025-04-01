@@ -86,6 +86,12 @@ $(document).ready(function() {
                 $('#loading').addClass('hidden');
             }
         });
+        $(document).on('click', '#pagination a', function(e) {
+            e.preventDefault();
+            let url = $(this).attr('href');
+            let page = new URL(url).searchParams.get('page');
+            updateFilters(page); // Call the function with the selected page number
+        });
     }
 
     // Event listener for changes in the filters
@@ -94,12 +100,7 @@ $(document).ready(function() {
     });
 
     // Event listener for pagination links
-    $(document).on('click', '#pagination a', function(e) {
-        e.preventDefault();
-        let url = $(this).attr('href');
-        let page = new URL(url).searchParams.get('page');
-        updateFilters(page); // Call the function with the selected page number
-    });
+  
 });
 </script>
 @endsection

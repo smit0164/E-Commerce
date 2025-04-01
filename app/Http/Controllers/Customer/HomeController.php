@@ -9,14 +9,15 @@ use App\Models\Product;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
     public function index()
     {
         try {
-            $products = Product::latest()->where('status', 1)->take(4)->get();
-            $categories = Category::latest()->where('status', 'Active')->get(); // Fetch all categories
+            $products = Product::latest()->where('status','active')->take(4)->get();
+            $categories = Category::latest()->where('status', 'active')->get(); // Fetch all categories
             return view('pages.customer.products.home', compact('products', 'categories'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Something went wrong!');
@@ -28,7 +29,7 @@ class HomeController extends Controller
         try {
             $category = Category::where('slug', $slug)
             ->with(['products' => function($query) {
-                $query->where('status', 1)
+                $query->where('status','active')
                       ->orderBy('id', 'desc'); // Optional: sort by latest
             }])
             ->firstOrFail();
@@ -64,6 +65,20 @@ class HomeController extends Controller
                 'error' => 'An error occurred',
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+    public function customerProfile(Request $request)
+    {
+        try {
+            $userId = Auth::guard('customer')->user()->id; // Get the logged-in user's ID
+            $customer = Auth::guard('customer')->user(); // Get the full customer object
+            
+            // Optionally load related data (addresses and orders)
+            $customer->load('addresses', 'orders');
+
+            return view('pages.customer.customer', compact('customer'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Unable to load your profile. Please try again later.');
         }
     }
     

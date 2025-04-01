@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Requests\Admin\ProductRequest;
-use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Constants\StoragePaths;
+
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -42,7 +43,7 @@ class ProductController extends Controller
                 $query->whereDate('created_at', '<=', $request->date_end);
             }
     
-            $products = $query->with('categories')->simplePaginate(4);
+            $products = $query->with('categories')->latest()->simplePaginate(4);
     
             if ($request->ajax()) {
                 return response()->json([

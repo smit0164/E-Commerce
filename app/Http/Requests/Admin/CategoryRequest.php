@@ -26,9 +26,9 @@ class CategoryRequest extends FormRequest
         $categoryId = $this->route('slug') 
             ? Category::where('slug', $this->route('slug'))->value('id') 
             : null;
-
+      
         return [
-            'name' => 'required|string|min:3|max:255|unique:categories,name,id' . $categoryId,
+            'name' => 'required|string|min:3|max:255|unique:categories,name,' . $categoryId,
             'slug' => 'required|string|min:3|max:255|unique:categories,slug,' . $categoryId,
             'image' => $this->isMethod('post') 
                 ? 'required|image|mimes:jpeg,png,jpg,gif|max:2048'  // Required for creation

@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(true);
         View::composer('layouts.users.app', function ($view) {
-            $view->with('categories', Category::all());
+            $view->with('categories', Category::where('status','active')->get());
         });
     }
 }

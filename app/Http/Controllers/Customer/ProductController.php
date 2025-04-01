@@ -12,47 +12,60 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        // Fetch all categories from the database (Active status)
-        $allCategories = Category::where('status', 'Active')->withCount('products')->get();
-    
-        // Initialize the query for products
-        $query = Product::where('status', 'active')->with('categories');
-        $categories=[];
-        // Filter by categories if provided in the request
-        if ($request->has('categories') && !empty($request->categories)) {
-            // Get the selected categories from the URL query string
-            $categories = explode(',', $request->input('categories'));
-            
-            // Apply the filter for categories using `whereHas`
-            $query->whereHas('categories', function ($q) use ($categories) {
-                $q->whereIn('categories.slug', $categories); // Filter by category slugs
-            });
+        try 
+        {
+            // Fetch all categories from the database (Active status)
+            $allCategories = Category::where('status', 'active')->withCount('products')->get();
+
+            // Initialize the query for products
+            $query = Product::where('status', 'active')->with('categories');
+            $categories = []; // Initialize categories array for view
+
+            // Filter by categories if provided in the request (for both AJAX and non-AJAX)
+            if ($request->has('categories') && !empty($request->categories)) {
+                $categories = explode(',', $request->input('categories'));
+                $query->whereHas('categories', function ($q) use ($categories) {
+                    $q->whereIn('categories.slug', $categories); // Filter by category slugs
+                });
+            }
+
+            // Filter by price range if provided in the request (for both AJAX and non-AJAX)
+            if ($request->has('price_min') && $request->price_min != '') {
+                  $query->where('price', '>=', $request->input('price_min'));
+            }
+            if ($request->has('price_max') && $request->price_max != '') {
+                $query->where('price', '<=', $request->input('price_max'));
+            }
+
+            // Pagination settings
+            $perPage = 6;
+            $products = $query->latest()->simplePaginate($perPage);
+
+            // Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('pages.customer.products.partials.product_grid', compact('products'))->render(),
+                    'pagination' => (string) $products->links('pagination::simple-tailwind'),
+                ]);
+            }
+
+            // Return the main view with the filtered products, all categories, and selected categories
+            return view('pages.customer.products.index', compact('products', 'allCategories', 'categories'));
+
+        } catch (\Exception $e) {
+            // Handle AJAX requests with an error message
+            if ($request->ajax()) {
+                return response()->json([
+                    'error' => 'Something went wrong while fetching products. Please try again later.'
+                ], 500);
+            }
+
+            // Redirect back with an error message for non-AJAX requests
+            return redirect()->back()->with('error', 'Something went wrong while fetching products.');
         }
-    
-        // Filter by price range if provided in the request
-        if ($request->has('price_min') && $request->price_min != '') {
-            $query->where('price', '>=', $request->input('price_min'));
-        }
-        if ($request->has('price_max') && $request->price_max != '') {
-            $query->where('price', '<=', $request->input('price_max'));
-        }
-    
-        // Paginate the products (6 products per page)
-        $perPage = 6;
-        $products = $query->latest()->simplePaginate($perPage);
-    
-        // If the request is an AJAX request, return the updated product grid and pagination links
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('pages.customer.products.partials.product_grid', compact('products'))->render(),
-                'pagination' => (string) $products->links('pagination::simple-tailwind'),
-            ]);
-        }
-        
-    
-        // Return the main view with the filtered products, all categories, and selected categories
-        return view('pages.customer.products.index', compact('products', 'allCategories', 'categories'));
     }
+
+
     
 
     public function show($slug)
@@ -69,16 +82,41 @@ class ProductController extends Controller
    
     
 
+    
+
     public function search(Request $request)
     {
+        try {
             $searchTerm = $request->input('search');
-           
-            $query = Product::where('status', 1)
+
+            // Fetch all categories for non-AJAX requests
+            $allCategories = Category::where('status', 'active')->withCount('products')->get();
+
+            // Build the query for active products with search term
+            $query = Product::where('status', 'active')
                 ->where(function ($q) use ($searchTerm) {
                     $q->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                        ->orWhere('description', 'like', '%' . $searchTerm . '%');
                 });
+                $categories = []; // Initialize categories array for view
 
+                // Filter by categories if provided in the request (for both AJAX and non-AJAX)
+                if ($request->has('categories') && !empty($request->categories)) {
+                    $categories = explode(',', $request->input('categories'));
+                    $query->whereHas('categories', function ($q) use ($categories) {
+                        $q->whereIn('categories.slug', $categories); // Filter by category slugs
+                    });
+                }
+    
+                // Filter by price range if provided in the request (for both AJAX and non-AJAX)
+                if ($request->has('price_min') && $request->price_min != '') {
+                      $query->where('price', '>=', $request->input('price_min'));
+                }
+                if ($request->has('price_max') && $request->price_max != '') {
+                    $query->where('price', '<=', $request->input('price_max'));
+                }
+
+            // Handle AJAX request
             if ($request->ajax()) {
                 $products = $query->latest()->take(5)->get();
                 $total = $query->count();
@@ -91,8 +129,30 @@ class ProductController extends Controller
                 ]);
             }
 
-            $products = $query->latest()->simplePaginate(8);
-            return view('pages.customer.products.search_results_button', compact('products', 'searchTerm'));
+            // Handle non-AJAX request
+            $products = $query->latest()->simplePaginate(3)->appends(['search' => $searchTerm]);
+
+            $allCategories = Category::where('status', 'active')->withCount('products')->get();
+            return view('pages.customer.products.index', compact('products', 'allCategories', 'categories'));
+
+
+
+
+        } catch (\Exception $e) {
+            // Handle errors for AJAX requests
+            if ($request->ajax()) {
+                return response()->json([
+                    'error' => 'Something went wrong while searching products. Please try again later.'
+                ], 500);
+            }
+
+            // Handle errors for non-AJAX requests
+            return redirect()->back()->with('error', 'Something went wrong while searching products: ' . $e->getMessage());
+        }
     }
+
+       
+    
+   
 
 }

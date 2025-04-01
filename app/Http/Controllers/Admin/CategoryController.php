@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryRequest;
-use App\Http\Requests\Admin\UpdateCategoryRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Constants\StoragePaths;
 
 class CategoryController extends Controller
 {

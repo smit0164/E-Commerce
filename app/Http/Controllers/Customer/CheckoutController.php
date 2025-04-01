@@ -24,10 +24,19 @@ class CheckoutController extends Controller
 
     public function index()
     {
-        $cartItems = $this->cart->getItems();
-        $totalPrice = $this->cart->totalPrice();
-        return view('pages.customer.checkout.index', compact('cartItems', 'totalPrice'));
+        try {
+            $cartItems = $this->cart->getItems();
+            $totalPrice = $this->cart->totalPrice();
+            
+            return view('pages.customer.checkout.index', compact('cartItems', 'totalPrice'));
+        } catch (\Exception $e) {
+            // Log the error for debugging
+    
+            // Redirect back with an error message
+            return redirect()->back()->with('error', 'Something went wrong while loading the checkout page.');
+        }
     }
+    
     public function store(CheckoutRequest $request)
     {
         // Validate the request with dynamic rules

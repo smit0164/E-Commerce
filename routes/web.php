@@ -28,6 +28,8 @@ Route::middleware("guest:customer")->group(function () {
 });
 
 Route::middleware("auth:customer")->group(function () {
+    Route::get('/customer/profile',[HomeController::class,'customerProfile'])->name('customer.profile');
+
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'addCart'])->name('add');

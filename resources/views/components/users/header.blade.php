@@ -68,7 +68,7 @@
                             <i class="fa-solid fa-chevron-down ml-2 text-xs"></i>
                         </button>
                         <div id="profileDropdown" class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2 hidden">
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="{{ route('customer.profile')}}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
                             <a href="{{ route('show.order.history', ['userid' => Auth::guard('customer')->user()->id]) }}"
                                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Orders</a>
                             <form method="POST" action="{{ route('logout') }}">
