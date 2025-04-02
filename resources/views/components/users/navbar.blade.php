@@ -25,7 +25,10 @@
             <div class="flex items-center space-x-6 capitalize">
                 <a href="{{ route('home') }}" class="text-gray-200 hover:text-white transition">Home</a>
                 <a href="{{ route('products.index') }}" class="text-gray-200 hover:text-white transition">Shop</a>
-                <a href="/contact" class="text-gray-200 hover:text-white transition">Contact Us</a>
+                <a href="{{ route('static.page', ['slug' => 'terms-and-conditions']) }}" class="text-gray-200 hover:text-white transition">
+                    Terms & Conditions
+                </a>
+                
             </div>
 
             @guest('customer')

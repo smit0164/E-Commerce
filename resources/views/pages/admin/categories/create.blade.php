@@ -69,7 +69,7 @@
          
         <div class="flex justify-end space-x-2">
             <a href="{{ route('admin.categories.index') }}" 
-               class="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 text-sm">
+            class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 text-sm shadow-sm hover:shadow-md">
                 Cancel
             </a>
             <button type="submit" 

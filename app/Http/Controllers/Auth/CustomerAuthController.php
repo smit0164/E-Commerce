@@ -58,7 +58,7 @@ class CustomerAuthController extends Controller
 
             if (Auth::guard('customer')->attempt($credentials)) {
                 $request->session()->regenerate();
-                return redirect()->route('home');
+                return redirect()->intended(route('home'));
             }
 
             return back()->with('error', 'The provided credentials do not match our records.')

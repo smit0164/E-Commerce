@@ -3,6 +3,7 @@ use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\HomeController;
+use App\Http\Controllers\Customer\StaticPagePublicController;
 use App\Http\Controllers\Customer\ProductController as CustomerProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,7 @@ Route::prefix('products')->name('products.')->group(function () {
     Route::get('/', [CustomerProductController::class, 'index'])->name('index');
     Route::get('/{slug}', [CustomerProductController::class, 'show'])->name('show');
 });
+Route::get('/page/{slug}', [StaticPagePublicController::class, 'show'])->name('static.page');
 
 
 
@@ -29,6 +31,9 @@ Route::middleware("guest:customer")->group(function () {
 
 Route::middleware("auth:customer")->group(function () {
     Route::get('/customer/profile',[HomeController::class,'customerProfile'])->name('customer.profile');
+    Route::put('/customer/profile',[HomeController::class,'updateCustomerProfile'])->name('customer.profile.update');
+    Route::post('/customer/fetch/address',[HomeController::Class,'fetchCustomerAddress'])->name('customer.address.fetch');
+    Route::put('/customer/edit/address',[HomeController::Class,'editCustomerAddress'])->name('customer.address.edit');
 
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
@@ -45,7 +50,7 @@ Route::middleware("auth:customer")->group(function () {
         return view('pages.customer.products.order-success', ['order' => session('order')]);
     })->name('order.success');
     Route::get('/order/{id}',[CheckoutController::class, 'showOrdersDetails'])->name('show.oreder.details');
-    Route::get('/showorder/{userid}',[HomeController::class,'showOrderHistory'])->name('show.order.history');
+    Route::get('/showorder',[HomeController::class,'showOrderHistory'])->name('show.order.history');
     Route::get('/customer/orders/{orderId}/details', [HomeController::class, 'getOrderDetails'])->name('customer.order.details');
     Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
 });

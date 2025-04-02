@@ -7,19 +7,19 @@
 
     <form action="{{ route('admin.static_blocks.store') }}" method="POST" class="bg-white p-6 rounded shadow" id="staticBlockForm">
         @csrf
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 gap-4">
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>
+                <label class="block text-gray-700 text-sm font-medium ">Title</label>
                 <input type="text" name="title" id="title" class="w-full px-3 py-2 border rounded @error('title') border-red-500 @enderror" value="{{ old('title') }}" placeholder="Enter your title">
                 @error('title')
-                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    <span class="text-red-500 text-xs  mt-1">{{ $message }}</span>
                 @enderror
             </div>
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">Slug</label>
                 <input type="text" name="slug" id="slug" class="w-full px-3 py-2 border rounded @error('slug') border-red-500 @enderror" value="{{ old('slug') }}" placeholder="Slug will appear" readonly>
                 @error('slug')
-                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                 @enderror
             </div>
         </div>
@@ -45,7 +45,7 @@
         </div>
 
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
-        <a href="{{ route('admin.static_blocks.index') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">Cancel</a>
+        <a href="{{ route('admin.static_blocks.index') }}" class="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 text-sm shadow-sm hover:shadow-md">Cancel</a>
     </form>
 
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">

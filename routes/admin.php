@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StaticBlockController;
+use App\Http\Controllers\Admin\StaticPageController;
 use Illuminate\Support\Facades\Route;
 use App\Mail\RegisterUser;
 
@@ -16,6 +17,9 @@ Route::middleware('guest:admin')->group(function () {
         Route::post('login', [AdminAuthController::class, 'login']);
     });
 });
+
+
+
 
 // Admin Authenticated Routes
 Route::middleware('auth:admin')->group(function () {
@@ -107,6 +111,17 @@ Route::middleware('auth:admin')->group(function () {
            
             Route::post('/generate-slug', [StaticBlockController::class, 'generateSlug'])->name('admin.static_blocks.generate_slug');
         });
+        
+            Route::get('/static-pages', [StaticPageController::class, 'index'])->name('admin.static_pages.index');
+            Route::get('/static-pages/create', [StaticPageController::class, 'create'])->name('admin.static_pages.create');
+            Route::post('/static-pages', [StaticPageController::class, 'store'])->name('admin.static_pages.store');
+            Route::get('/static-pages/{slug}/edit', [StaticPageController::class, 'edit'])->name('admin.static_pages.edit');
+            Route::put('/static-pages/{slug}', [StaticPageController::class, 'update'])->name('admin.static_pages.update');
+            Route::delete('/static-pages/{slug}', [StaticPageController::class, 'destroy'])->name('admin.static_pages.destroy');
+            Route::get('/static-pages/trashed', [StaticPageController::class, 'trashed'])->name('admin.static_pages.trashed');
+            Route::post('/static-pages/{slug}/restore', [StaticPageController::class, 'restore'])->name('admin.static_pages.restore');
+            Route::delete('/static-pages/{id}/force-delete', [StaticPageController::class, 'forceDelete'])->name('admin.static_pages.force_delete');
+        
 
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
     });

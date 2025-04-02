@@ -3,7 +3,7 @@
 @section('title', 'Static Block Management')
 
 @section('content')
-<div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto my-6">
+<div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto ">
     <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold text-gray-900">Manage Static Blocks</h2>
         <div class="flex space-x-4">

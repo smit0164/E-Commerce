@@ -36,6 +36,12 @@
             <span>Static Blocks</span>
         </a>
 
+        <a href="{{ route('admin.static_pages.index') }}" class="flex items-center space-x-3 p-3 rounded-lg transition 
+            {{ $currentRoute == 'admin.static_pages.index' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-600' }}">
+            <i class="fas fa-file-alt w-5 h-5"></i>
+            <span>Static Pages</span>
+        </a>
+
         <a href="" class="flex items-center space-x-3 p-3 rounded-lg transition 
             text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
             <i class="fas fa-users w-5 h-5"></i>
