@@ -3,8 +3,8 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-    <div class="max-w-7xl mx-auto p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+    <div class="max-w-7xl mx-auto p-6 my-0">
+        <h1 class="text-2xl font-bold text-gray-900 my-0">Admin Dashboard</h1>
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -57,10 +57,8 @@
                                     @php
                                         $statusColors = [
                                             'pending' => 'bg-orange-600',
-                                            'processing' => 'bg-blue-600',
                                             'shipped' => 'bg-purple-600',
                                             'delivered' => 'bg-green-600',
-                                            'canceled' => 'bg-red-600',
                                         ];
                                         $status = strtolower($order->status);
                                         $statusClass = $statusColors[$status] ?? 'bg-gray-600';

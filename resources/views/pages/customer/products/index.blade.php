@@ -1,18 +1,19 @@
 @extends('layouts.users.app')
 
 @section('content')
+
 <div class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 md:grid-cols-[280px,1fr] gap-8">
         <!-- Sidebar -->
         <aside class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-lg font-semibold text-gray-800 mb-5 uppercase tracking-wide">Categories</h3>
             <div class="space-y-3">
-                @foreach ($allCategories as $category)  <!-- Use $allCategories to iterate through all categories -->
+                @foreach ($allCategories as $category)
                 <div class="flex items-center group form-check">
                     <input type="checkbox" value="{{ $category->slug }}" 
                            id="category-{{ $category->slug }}" 
                            class="text-primary focus:ring-2 focus:ring-primary/20 rounded-sm cursor-pointer transition-colors form-check-input category-filter"
-                           @if(in_array($category->slug, (array)explode(',', request()->categories ?? ''))) checked @endif> <!-- Ensure categories are treated as an array -->
+                           @if(in_array($category->slug, (array)explode(',', request()->categories ?? ''))) checked @endif>
                     <label for="category-{{ $category->slug }}" class="text-gray-600 ml-3 cursor-pointer group-hover:text-gray-800 transition-colors flex-1">
                         {{ $category->name }}
                     </label>
@@ -32,75 +33,74 @@
         <section class="pb-8">
             <div id="loading" class="hidden text-center py-4">Loading...</div>
             <div id="product-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @include('pages.customer.products.partials.product_grid') <!-- Initial Product Grid -->
+                @include('pages.customer.products.partials.product_grid')
             </div>
             <div id="pagination" class="mt-8">
-                {{ $products->links('pagination::simple-tailwind') }} <!-- Initial Pagination -->
+                @include('components.pagination', ['paginator' => $products]) <!-- Custom Pagination Component -->
             </div>
         </section>
     </div>
+
+
+
+
 </div>
-
 <script>
-$(document).ready(function() {
-    function updateFilters(page = 1) {
-        let categories = [];
-        $('.category-filter:checked').each(function() {
-            categories.push($(this).val());
+    $(document).ready(function() {
+        function updateFilters(page = 1) {
+            let categories = [];
+            $('.category-filter:checked').each(function() {
+                categories.push($(this).val());
+            });
+            let priceMin = $('#price_min').val();
+            let priceMax = $('#price_max').val();
+    
+            $('#loading').removeClass('hidden');
+    
+            $.ajax({
+                url: "{{ route('products.index') }}",
+                method: 'GET',
+                data: {
+                    categories: categories.join(','),
+                    price_min: priceMin,
+                    price_max: priceMax,
+                    page: page,
+                },
+                success: function(response) {
+                    $('#product-grid').html(response.html);
+                    $('#pagination').html(response.pagination); // Update pagination dynamically
+                    $('#loading').addClass('hidden');
+         
+                    // Update the URL for browser navigation without a full reload
+                    let url = new URL(window.location.href);
+                    url.searchParams.set('categories', categories.join(','));
+                    url.searchParams.set('price_min', priceMin);
+                    url.searchParams.set('price_max', priceMax);
+                    url.searchParams.set('page', page);
+                    history.pushState(null, '', url);
+                },
+                error: function(xhr) {
+                    console.log('Error:', xhr);
+                    $('#loading').addClass('hidden');
+                }
+            });
+        }
+    
+      
+    
+        
+    
+        // Trigger filtering when checkboxes or price inputs are updated
+        $('.category-filter, #price_min, #price_max').on('change', function() {
+            updateFilters();
         });
-        let priceMin = $('#price_min').val();
-        let priceMax = $('#price_max').val();
-
-        // Show loading spinner
-        $('#loading').removeClass('hidden');
-
-        // Send the AJAX request to the index route
-        $.ajax({
-            url: "{{ route('products.index') }}", // Correct route to index
-            method: 'GET',
-            data: {
-                categories: categories.join(','),  // Categories selected in the filter
-                price_min: priceMin,  // Minimum price
-                price_max: priceMax,  // Maximum price
-                page: page,  // Current page number
-            },
-            success: function(response) {
-                // Update the product grid with the new HTML
-                $('#product-grid').html(response.html);
-                // Update the pagination links
-                $('#pagination').html(response.pagination);
-                // Hide the loading spinner
-                $('#loading').addClass('hidden');
-
-                // Update the URL with the selected filters without reloading the page
-                let url = new URL(window.location);
-                url.searchParams.set('categories', categories.join(','));
-                url.searchParams.set('price_min', priceMin);
-                url.searchParams.set('price_max', priceMax);
-                url.searchParams.set('page', page);
-                history.pushState(null, '', url); // Update URL
-            },
-            error: function(xhr) {
-                console.log('Error:', xhr);
-                // Hide the loading spinner if there's an error
-                $('#loading').addClass('hidden');
-            }
-        });
+    
+        // Handle pagination clicks dynamically
         $(document).on('click', '#pagination a', function(e) {
-            e.preventDefault();
-            let url = $(this).attr('href');
-            let page = new URL(url).searchParams.get('page');
-            updateFilters(page); // Call the function with the selected page number
+            e.preventDefault(); // Prevent default page reload
+            let page = $(this).data('page'); // Get page number from data-page attribute
+            updateFilters(page);
         });
-    }
-
-    // Event listener for changes in the filters
-    $('.category-filter, #price_min, #price_max').on('change', function() {
-        updateFilters(); // Call the function to apply filters
     });
-
-    // Event listener for pagination links
-  
-});
-</script>
+    </script>
 @endsection

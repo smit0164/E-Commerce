@@ -1,0 +1,42 @@
+<!-- resources/views/pages/admin/roles/partials/role_table.blade.php -->
+<div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permissions</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            @forelse($roles as $role)
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ $role->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ $role->permissions->pluck('name')->implode(', ') }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ $role->created_at->format('d/m/Y') }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a href="" 
+                           class="text-indigo-600 hover:text-indigo-900 mr-4">
+                            Edit
+                        </a>
+                        <button onclick="openDeleteModal('{{ $role->slug }}', '{{ $role->name }}')"
+                                class="text-red-600 hover:text-red-900">
+                            Trash
+                        </button>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                        No roles found
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>

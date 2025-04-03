@@ -8,7 +8,7 @@
         
         <!-- Search Bar -->
         <div class="flex-grow max-w-2xl relative">
-            <form class="relative flex items-center" action="{{ route('products.search') }}" id="search-form">
+            <form class="relative flex items-center" action="{{ route('products.index') }}" id="search-form">
                 <label for="search" class="sr-only">Search products</label>
                 <input type="text" name="search" id="search"
                     class="w-full border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 px-10 py-2.5 rounded-full shadow-sm focus:outline-none text-gray-700 transition-all duration-200"
@@ -104,11 +104,13 @@
                         method: 'GET',
                         data: { search: searchTerm },
                         success: function(response) {
+                            console.log(response);
                             if (!response.html) {
                                 $('#search-results').html("<p class='text-gray-500 p-2'>No products found</p>");
+                                $('#search-modal').removeClass('hidden');
                             } else {
                                 $('#search-results').html(response.html);
-                                $('#view-more-link').attr('href', "{{ route('products.search') }}?search=" + encodeURIComponent(searchTerm));
+                                $('#view-more-link').attr('href', "{{ route('products.index') }}?search=" + encodeURIComponent(searchTerm));
                                 $('#view-more').toggle(response.hasMore);
                                 $('#search-modal').removeClass('hidden');
                             }

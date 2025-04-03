@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\StaticBlockController;
 use App\Http\Controllers\Admin\StaticPageController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\AddAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Mail\RegisterUser;
 
@@ -82,7 +84,7 @@ Route::middleware('auth:admin')->group(function () {
             // Utility routes
             Route::post('/check-unique', [ProductController::class, 'checkUnique'])->name('admin.products.check-unique');
             Route::post('/edit/check-unique', [ProductController::class, 'checkUniqueForEdit'])->name('admin.products.check-unique-for-edit'); // Fixed typo in name and method
-        });
+        })->can('manage-products');
 
         // Orders Routes
         Route::prefix('orders')->group(function () {
@@ -122,8 +124,18 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/static-pages/{slug}/restore', [StaticPageController::class, 'restore'])->name('admin.static_pages.restore');
             Route::delete('/static-pages/{id}/force-delete', [StaticPageController::class, 'forceDelete'])->name('admin.static_pages.force_delete');
         
+            Route::get('/role',[RoleController::class,'index'])->name('admin.roles.index');
+            Route::get('/role/create',[RoleController::class,'create'])->name('admin.roles.create');
+            Route::post('/role',[RoleController::class,'store'])->name('admin.roles.store');
 
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+    });
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/admins', [AddAdminController::class, 'index'])->name('admin.admins.index');
+        Route::get('/admins/create', [AddAdminController::class, 'create'])->name('admin.admins.create');
+        Route::post('/admins', [AddAdminController::class, 'store'])->name('admin.admins.store');
+        Route::get('/admins/trashed', [AddAdminController::class, 'trashed'])->name('admin.admins.trashed');
     });
 
     

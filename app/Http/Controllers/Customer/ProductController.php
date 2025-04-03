@@ -12,58 +12,66 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        try 
-        {
-            // Fetch all categories from the database (Active status)
+        try {
+            // Fetch all active categories
+            
             $allCategories = Category::where('status', 'active')->withCount('products')->get();
-
-            // Initialize the query for products
+             
+            // Initialize product query
             $query = Product::where('status', 'active')->with('categories');
-            $categories = []; // Initialize categories array for view
 
-            // Filter by categories if provided in the request (for both AJAX and non-AJAX)
-            if ($request->has('categories') && !empty($request->categories)) {
-                $categories = explode(',', $request->input('categories'));
-                $query->whereHas('categories', function ($q) use ($categories) {
-                    $q->whereIn('categories.slug', $categories); // Filter by category slugs
+            if ($request->has('search') && !empty(trim($request->search))) {
+                $searchTerm = trim($request->search);
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('description', 'LIKE', "%{$searchTerm}%");
                 });
             }
-
-            // Filter by price range if provided in the request (for both AJAX and non-AJAX)
+            // Handle category filtering
+            $selectedCategories = [];
+            if ($request->has('categories') && !empty($request->categories)) {
+                $selectedCategories = explode(',', $request->categories);
+                $query->whereHas('categories', function ($q) use ($selectedCategories) {
+                    $q->whereIn('categories.slug', $selectedCategories);
+                });
+           }
+           
+    
+            // Handle price range filtering
             if ($request->has('price_min') && $request->price_min != '') {
-                  $query->where('price', '>=', $request->input('price_min'));
+                $query->where('price', '>=', $request->price_min);
             }
             if ($request->has('price_max') && $request->price_max != '') {
-                $query->where('price', '<=', $request->input('price_max'));
+                $query->where('price', '<=', $request->price_max);
             }
-
-            // Pagination settings
-            $perPage = 6;
-            $products = $query->latest()->simplePaginate($perPage);
-
-            // Handle AJAX request
-            if ($request->ajax()) {
+            
+            // Apply pagination
+            
+            $products = $query->latest()->paginate(6)->appends($request->query());
+            
+            // Return AJAX response
+            if ($request->ajax()){
                 return response()->json([
                     'html' => view('pages.customer.products.partials.product_grid', compact('products'))->render(),
-                    'pagination' => (string) $products->links('pagination::simple-tailwind'),
+                    'pagination' => view('components.pagination', ['paginator' => $products])->render(),
                 ]);
             }
-
-            // Return the main view with the filtered products, all categories, and selected categories
-            return view('pages.customer.products.index', compact('products', 'allCategories', 'categories'));
-
+           
+            // Return main view for non-AJAX requests
+            return view('pages.customer.products.index', compact('products', 'allCategories', 'selectedCategories'));
+    
         } catch (\Exception $e) {
-            // Handle AJAX requests with an error message
+            // Handle errors gracefully
             if ($request->ajax()) {
                 return response()->json([
                     'error' => 'Something went wrong while fetching products. Please try again later.'
                 ], 500);
             }
-
-            // Redirect back with an error message for non-AJAX requests
+    
             return redirect()->back()->with('error', 'Something went wrong while fetching products.');
         }
     }
+
 
 
     
