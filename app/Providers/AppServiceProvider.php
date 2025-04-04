@@ -26,5 +26,6 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.users.app', function ($view) {
             $view->with('categories', Category::where('status','active')->get());
         });
+        
     }
 }

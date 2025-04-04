@@ -26,10 +26,10 @@ Route::middleware('guest:admin')->group(function () {
 // Admin Authenticated Routes
 Route::middleware('auth:admin')->group(function () {
     Route::prefix('admin')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard')->can('manage-dashboared');
         
         // Categories Routes
-        Route::prefix('categories')->group(function () {
+        Route::prefix('categories')->middleware('can:manage-categories')->group(function () {
             // List active categories
             Route::get('/', [CategoryController::class, 'index'])->name('admin.categories.index');
             Route::get('/trashed', [CategoryController::class, 'trashed'])->name('admin.categories.trashed');
@@ -58,7 +58,7 @@ Route::middleware('auth:admin')->group(function () {
         });
 
         // Products Routes
-        Route::prefix('products')->group(function () {
+        Route::prefix('products')->middleware('can:manage-products')->group(function () {
             // List active products
             Route::get('/', [ProductController::class, 'index'])->name('admin.products.index'); // Updated name to 'admin.products.index'
             Route::get('/trashed', [ProductController::class, 'trashed'])->name('admin.products.trashed');
@@ -84,17 +84,17 @@ Route::middleware('auth:admin')->group(function () {
             // Utility routes
             Route::post('/check-unique', [ProductController::class, 'checkUnique'])->name('admin.products.check-unique');
             Route::post('/edit/check-unique', [ProductController::class, 'checkUniqueForEdit'])->name('admin.products.check-unique-for-edit'); // Fixed typo in name and method
-        })->can('manage-products');
+        });
 
         // Orders Routes
-        Route::prefix('orders')->group(function () {
-            Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
+        Route::prefix('orders')->middleware('can:manage-orders')->group(function () {
+            Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index')->can('manage-orders');
             Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
             Route::get('/{order}/edit', [OrderController::class, 'edit'])->name('admin.orders.edit');
             Route::put('/{order}', [OrderController::class, 'update'])->name('admin.orders.update');
         });
         
-        Route::prefix('static-blocks')->group(function () {
+        Route::prefix('static-blocks')->middleware('can:manage-static-blocks')->group(function () {
             Route::get('/', [StaticBlockController::class, 'index'])->name('admin.static_blocks.index');
 
             Route::delete('/{slug}', [StaticBlockController::class, 'destroy'])->name('admin.static_blocks.destroy');
@@ -114,29 +114,52 @@ Route::middleware('auth:admin')->group(function () {
             Route::post('/generate-slug', [StaticBlockController::class, 'generateSlug'])->name('admin.static_blocks.generate_slug');
         });
         
-            Route::get('/static-pages', [StaticPageController::class, 'index'])->name('admin.static_pages.index');
-            Route::get('/static-pages/create', [StaticPageController::class, 'create'])->name('admin.static_pages.create');
-            Route::post('/static-pages', [StaticPageController::class, 'store'])->name('admin.static_pages.store');
-            Route::get('/static-pages/{slug}/edit', [StaticPageController::class, 'edit'])->name('admin.static_pages.edit');
-            Route::put('/static-pages/{slug}', [StaticPageController::class, 'update'])->name('admin.static_pages.update');
-            Route::delete('/static-pages/{slug}', [StaticPageController::class, 'destroy'])->name('admin.static_pages.destroy');
-            Route::get('/static-pages/trashed', [StaticPageController::class, 'trashed'])->name('admin.static_pages.trashed');
-            Route::post('/static-pages/{slug}/restore', [StaticPageController::class, 'restore'])->name('admin.static_pages.restore');
-            Route::delete('/static-pages/{id}/force-delete', [StaticPageController::class, 'forceDelete'])->name('admin.static_pages.force_delete');
+        Route::prefix('static-pages')->middleware('can:manage-static-page')->group(function () {
+            Route::get('/', [StaticPageController::class, 'index'])->name('admin.static_pages.index');
+            Route::get('/create', [StaticPageController::class, 'create'])->name('admin.static_pages.create');
+            Route::post('/', [StaticPageController::class, 'store'])->name('admin.static_pages.store');
+            Route::get('/{slug}/edit', [StaticPageController::class, 'edit'])->name('admin.static_pages.edit');
+            Route::put('/{slug}', [StaticPageController::class, 'update'])->name('admin.static_pages.update');
+            Route::delete('/{slug}', [StaticPageController::class, 'destroy'])->name('admin.static_pages.destroy');
+    
+            // Soft delete management
+            Route::get('/trashed', [StaticPageController::class, 'trashed'])->name('admin.static_pages.trashed');
+            Route::post('/{slug}/restore', [StaticPageController::class, 'restore'])->name('admin.static_pages.restore');
+            Route::delete('/{id}/force-delete', [StaticPageController::class, 'forceDelete'])->name('admin.static_pages.force_delete');
+        });
+    
         
-            Route::get('/role',[RoleController::class,'index'])->name('admin.roles.index');
-            Route::get('/role/create',[RoleController::class,'create'])->name('admin.roles.create');
-            Route::post('/role',[RoleController::class,'store'])->name('admin.roles.store');
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('admin.roles.index');
+            Route::get('/create', [RoleController::class, 'create'])->name('admin.roles.create');
+            Route::post('/', [RoleController::class, 'store'])->name('admin.roles.store');
+            Route::get('/edit/{id}',[RoleController::class, 'edit'])->name('admin.roles.edit');
+            Route::put('/{id}',[RoleController::class,'update'])->name('admin.roles.update');
+            Route::delete('/{id}',[RoleController::class,'destroy'])->name('admin.roles.destroy');
+            Route::get('/trashed', [RoleController::class, 'trashed'])->name('admin.roles.trashed');
+            Route::post('/restore/{id}',[RoleController::class,'restore'])->name('admin.roles.restore');
+            Route::delete('/{id}/force-delete', [RoleController::class, 'forceDelete'])->name('admin.roles.force_delete');
+        });
+
+        Route::prefix('admins')->group(function () {
+            Route::get('/', [AddAdminController::class, 'index'])->name('admin.admins.index');
+
+            Route::get('/create', [AddAdminController::class, 'create'])->name('admin.admins.create');
+            Route::post('/', [AddAdminController::class, 'store'])->name('admin.admins.store');
+
+            Route::delete('/{id}',[AddAdminController::class,'destroy'])->name('admin.admins.destroy');
+            Route::get('/trashed', [AddAdminController::class, 'trashed'])->name('admin.admins.trashed');
+            Route::post('/restore/{id}',[AddAdminController::class,'restore'])->name('admin.admins.restore');
+            Route::delete('/{id}/force-delete', [AddAdminController::class, 'forceDelete'])->name('admin.admins.force_delete');
+            Route::get('/{id}',[AddAdminController::class,'edit'])->name('admin.admins.edit');
+            Route::put('/{id}',[AddAdminController::class,'Update'])->name('admin.admins.update');
+        });
+         
 
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
     });
 
-    Route::prefix('admin')->group(function () {
-        Route::get('/admins', [AddAdminController::class, 'index'])->name('admin.admins.index');
-        Route::get('/admins/create', [AddAdminController::class, 'create'])->name('admin.admins.create');
-        Route::post('/admins', [AddAdminController::class, 'store'])->name('admin.admins.store');
-        Route::get('/admins/trashed', [AddAdminController::class, 'trashed'])->name('admin.admins.trashed');
-    });
+  
 
-    
+
 });

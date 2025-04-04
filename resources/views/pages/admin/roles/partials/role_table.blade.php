@@ -11,23 +11,30 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             @forelse($roles as $role)
+               
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $role->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         {{ $role->permissions->pluck('name')->implode(', ') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {{ $role->created_at->format('d/m/Y') }}
+                        {{ $role->created_at->format('M d, Y') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="" 
+                        <a href="{{ route('admin.roles.edit',$role->id) }}" 
                            class="text-indigo-600 hover:text-indigo-900 mr-4">
-                            Edit
+                           <i class="fas fa-edit w-5 h-5"></i>
                         </a>
-                        <button onclick="openDeleteModal('{{ $role->slug }}', '{{ $role->name }}')"
-                                class="text-red-600 hover:text-red-900">
-                            Trash
+
+                        @php
+                         $isDisabled = (bool)($role->admins->count()>0);
+                        @endphp
+                        <button onclick="openDeleteModal('{{ $role->id }}', '{{ $role->name }}')"
+                            class="text-red-600 hover:text-red-900 {{ $isDisabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+                            {{ $isDisabled ? 'disabled' : '' }}>
+                            <i class="fas fa-trash w-5 h-5"></i>
                         </button>
+                    
                     </td>
                 </tr>
             @empty

@@ -15,6 +15,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
+       
         try {
             $query = Category::query();
     
@@ -143,7 +144,8 @@ class CategoryController extends Controller
 
     public function destroy($slug)
     {
-        try {
+        
+        try{
             $category = Category::where('slug', $slug)->firstOrFail();
             $category->delete(); // Soft delete
             

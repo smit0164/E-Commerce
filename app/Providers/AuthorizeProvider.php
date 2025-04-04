@@ -2,48 +2,82 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\ServiceProvider;
 use App\Models\Admin;
 use App\Models\Permission;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
 
 class AuthorizeProvider extends ServiceProvider
 {
     /**
-     * Register any authentication / authorization services.
+     * Register services.
+     */
+    public function register(): void
+    {
+        Log::info("AuthorizeProvider registered.");
+    }
+
+    /**
+     * Bootstrap services.
      */
     public function boot(): void
     {
-        // Log the start of the boot method
-        Log::info('AuthorizeProvider boot method started.');
+        // Gate::define('manage-categories', function ($admin) {
+        //     $hasPermission = $admin->hasPermission('manage-categories');
+        //     return $hasPermission;
+        // });
+    
+        // Gate::define('manage-products', function ($admin) {
+        //     $hasPermission = $admin->hasPermission('manage-products');
+        //     return $hasPermission;
+        // });
 
-        // Defer gate definitions until after all other boot methods have run
-        $this->app->booted(function () {
-            // Retrieve all permissions
-            $permissions = Permission::all();
+        // Gate::define('manage-orders', function ($admin) {
+        //    $hasPermission = $admin->hasPermission('manage-orders');
+        //     return $hasPermission;
+        // });
 
-            // Log the number of permissions retrieved
-            Log::info('Number of permissions retrieved: ' . $permissions->count());
+        // Gate::define('manage-dashboard', function ($admin) {
+        //     $hasPermission = $admin->hasPermission('manage-dashboard');
+        //      return $hasPermission;
+        // });
 
-            // Define Gates for Permissions
-            $permissions->each(function ($permission) {
-                Gate::define($permission->slug, function ($admin) use ($permission) {
-                    Log::info("inside gate");
-                    $hasPermission = $admin->role->permissions->contains('slug', $permission->slug);
+        // Gate::define('manage-orders', function ($admin) {
+        //    $hasPermission = $admin->hasPermission('manage-orders');
+        //     return $hasPermission;
+        // });
 
-                    // Log the result of the permission check
-                    Log::info("Gate check for permission '{$permission->slug}': " . ($hasPermission ? 'Granted' : 'Denied'));
+        // Gate::define('manage-static-blocks', function ($admin) {
+        //     $hasPermission = $admin->hasPermission('manage-static-blocks');
+        //      return $hasPermission;
+        // });
 
-                    return $hasPermission;
-                });
-
-                // Log the definition of each gate
-                Log::info("Gate defined for permission: {$permission->slug}");
+        // Gate::define('manage-static-page', function ($admin) {
+        //     $hasPermission = $admin->hasPermission('manage-static-page');
+        //      return $hasPermission;
+        // });
+        $permissions = [
+            'manage-categories',
+            'manage-products',
+            'manage-orders',
+            'manage-dashboard',
+            'manage-static-blocks',
+            'manage-static-page',
+            'manage-users'
+        ];
+        foreach ($permissions as $permission) {
+            Gate::define($permission, function ($admin) use ($permission) {
+                return $admin->hasPermission($permission);
             });
+        }
+             
+        Gate::before(function ($admin, $permission) {
+            return $admin->isSuperAdmin() ? true : null;
         });
-
-        // Log the end of the boot method
-        Log::info('AuthorizeProvider boot method completed.');
+    
     }
+    
 }

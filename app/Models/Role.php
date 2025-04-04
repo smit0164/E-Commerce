@@ -20,7 +20,7 @@ class Role extends Model
 
     public function permissions()
     {
-        Log::info('Accessing permissions relationship for model ID: ' . $this->id);
+       
         return $this->belongsToMany(Permission::class, 'role_permission');
     }
 }

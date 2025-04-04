@@ -16,24 +16,24 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $admin->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $admin->email }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->role->name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline
+                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->role?->name ?? 'No role' }}</td>
 
--flex text-xs leading-5 font-semibold rounded-full 
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                             {{ $admin->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                             {{ ucfirst($admin->status) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->created_at->format('d/m/Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ $admin->created_at->format('M d, Y')  }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a href="" 
-                           class="text-indigo-600 hover:text-indigo-900 mr-4">
-                            Edit
+                        <a href="{{ route('admin.admins.edit',$admin->id) }}" 
+                           class="text-indigo-600 hover:text-indigo-900 mr-4"  title="Edit">
+                           <i class="fas fa-edit w-5 h-5"></i>
                         </a>
+                        
                         <button onclick="openDeleteModal('{{ $admin->id }}', '{{ $admin->name }}')"
                                 class="text-red-600 hover:text-red-900">
-                            Trash
+                                <i class="fas fa-trash w-5 h-5"></i>
                         </button>
                     </td>
                 </tr>

@@ -1,12 +1,12 @@
-<!-- resources/views/pages/admin/admins/index.blade.php -->
 @extends('layouts.admin.app')
 @section('title', 'Admin Management')
 @section('content')
+
 <div class="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-gray-900">Manage Admins</h2>
         <div class="flex space-x-4">
-            <a href="" 
+            <a href="{{ route('admin.admins.trashed') }}" 
                class="bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded flex items-center">
                 <i class="fas fa-trash-restore mr-2"></i> View Trashed Admins
             </a>
@@ -15,6 +15,43 @@
                 <i class="fas fa-plus mr-2"></i> Add New Admin
             </a>
         </div>
+    </div>
+
+    <!-- Enhanced Search and Filter Section -->
+    <div class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Search Input -->
+            <div>
+                <label for="search-admins" class="block text-sm font-medium text-gray-700 mb-1">Search Admins</label>
+                <div class="relative">
+                    <input type="text" 
+                           id="search-admins" 
+                           name="search"
+                           class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" 
+                           placeholder="Search by name or email...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <div class="flex space-x-2">
+                    <input type="date" 
+                           id="date_start-admins" 
+                           name="date_start"
+                           class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="date" 
+                           id="date_end-admins" 
+                           name="date_end"
+                           class="w-1/2 px-3 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <div id="admin-table-container">
@@ -52,14 +89,11 @@
     </div>
 </div>
 
-{{-- <script>
+<script>
     function openDeleteModal(adminId, adminName) {
         const modal = document.getElementById('delete-modal-admin');
-        const adminNameSpan = document.getElementById('delete-admin-name');
-        const deleteForm = document.getElementById('delete-admin-form');
-
-        adminNameSpan.textContent = adminName;
-        // deleteForm.action = "{{ route('admin.admins.destroy', '') }}/" + adminId;
+        document.getElementById('delete-admin-name').textContent = adminName;
+        document.getElementById('delete-admin-form').action = "{{ route('admin.admins.destroy', '') }}/" + adminId;
         modal.classList.remove('hidden');
     }
 
@@ -75,10 +109,19 @@
 
     $(document).ready(function () {
         function fetchAdmins(page = 1) {
+            let search = $('#search-admins').val();
+            let dateStart = $('#date_start-admins').val();
+            let dateEnd = $('#date_end-admins').val();
+
             $.ajax({
                 url: "{{ route('admin.admins.index') }}",
                 method: "GET",
-                data: { page: page },
+                data: {
+                    search: search,
+                    date_start: dateStart,
+                    date_end: dateEnd,
+                    page: page
+                },
                 success: function (response) {
                     $("#admin-table-container").html(response.html);
                     $('#pagination-admin').html(response.pagination);
@@ -89,6 +132,12 @@
             });
         }
 
+        // Event Listeners for Filters
+        $('#search-admins, #date_start-admins, #date_end-admins').on('input', function() {
+            fetchAdmins();
+        });
+
+        // Pagination Click Handler
         $(document).on('click', '#pagination-admin a', function (e) {
             e.preventDefault();
             let url = $(this).attr('href');
@@ -96,5 +145,6 @@
             fetchAdmins(page);
         });
     });
-</script> --}}
+</script>
+
 @endsection
