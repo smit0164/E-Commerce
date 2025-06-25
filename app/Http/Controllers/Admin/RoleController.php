@@ -79,7 +79,7 @@ class RoleController extends Controller
     public function edit($id) {
         try {
             $role = Role::where('id', $id)->firstOrFail();
-            $permissions = Permission::all(); // Assuming you need all permissions
+            $permissions = Permission::all(); 
             return view('pages.admin.roles.edit', compact('role', 'permissions'));
         } catch (\Exception $e) {
             return back()->with('error', 'Error while loading the edit page: ' . $e->getMessage());

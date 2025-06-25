@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Admin extends Authenticatable
 {
     use HasFactory, SoftDeletes;
-
+     
     protected $fillable = ['name','email', 'password', 'status', 'role_id'];
     
     protected $hidden = ['password'];

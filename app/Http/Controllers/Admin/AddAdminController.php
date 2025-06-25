@@ -20,7 +20,6 @@ class AddAdminController extends Controller
             
             // Search functionality
             if ($request->has('search')) {
-                
                 $query->where(function ($q) use ($request) {
                     $q->where('name', 'like', '%' . $request->search . '%')
                       ->orWhere('email', 'like','%' . $request->search . '%');
@@ -77,13 +76,9 @@ class AddAdminController extends Controller
     public function store(AdminRequest $request)
     {
         try {
-            $validated = $request->validated();
-            
-            // Hash the password before storing
+            $validated = $request->validated();// Hash the password before storing
             $validated['password'] = Hash::make($validated['password']);
-    
             Admin::create($validated);
-    
             return redirect()->route('admin.admins.index')->with('success', 'Admin created successfully');
         } catch (\Exception $e) {
             return redirect()->back()->withInput()->with('error', 'Something went wrong! Please try again.');

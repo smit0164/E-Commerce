@@ -84,11 +84,7 @@ class OrderController extends Controller
 
             $order->update(['status' => $request->status]);
             return redirect()->route('admin.orders.index')->with('success', 'Order status updated successfully.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->with('error', 'Validation failed: ' . $e->getMessage())
-                        ->withErrors($e->errors())
-                        ->withInput();
-        } catch (\Exception $e) {
+        }catch (\Exception $e) {
             return redirect()->route('admin.orders.index')->with('error', 'Failed to update order: ' . $e->getMessage());
         }
     }

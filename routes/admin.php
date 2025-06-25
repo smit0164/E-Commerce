@@ -12,21 +12,16 @@ use App\Http\Controllers\Admin\AddAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Mail\RegisterUser;
 
-// Admin Guest Routes (Login)
-Route::middleware('guest:admin')->group(function () {
-    Route::prefix('admin')->group(function () {
-        Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-        Route::post('login', [AdminAuthController::class, 'login']);
-    });
+
+Route::group(['prefix' => 'admin','middleware' => 'guest:admin'], function () {
+    Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('login', [AdminAuthController::class, 'login']);
 });
 
 
 
-
-// Admin Authenticated Routes
-Route::middleware('auth:admin')->group(function () {
-    Route::prefix('admin')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard')->can('manage-dashboared');
+Route::group(['prefix'=>'admin','middleware'=>'auth:admin'],function(){
+      Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard')->can('manage-dashboared');
         
         // Categories Routes
         Route::prefix('categories')->middleware('can:manage-categories')->group(function () {
@@ -157,9 +152,5 @@ Route::middleware('auth:admin')->group(function () {
          
 
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
-    });
-
-  
-
-
 });
+

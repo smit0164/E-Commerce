@@ -27,5 +27,6 @@ class AppServiceProvider extends ServiceProvider
             $view->with('categories', Category::where('status','active')->get());
         });
         
+        
     }
 }

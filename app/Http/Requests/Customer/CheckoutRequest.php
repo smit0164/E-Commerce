@@ -57,7 +57,6 @@ class CheckoutRequest extends FormRequest
             'email.required' => 'An email address is required.',
             'phone.digits' => 'Phone number must be exactly 10 digits.',
             'payment_method.required' => 'Please select a payment method.',
-            // Add more custom messages as needed
         ];
     }
 }

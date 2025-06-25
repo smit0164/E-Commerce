@@ -18,7 +18,7 @@ class DashboardController extends Controller
         ->whereIn('status', ['pending', 'shipped', 'delivered'])
         ->groupBy('status')
         ->pluck('count', 'status');
-
+       
         // Retrieve counts with a default value of 0 if not present
         $pendingOrders   = $orderCounts->get('pending', 0);
         $shippedOrders   = $orderCounts->get('shipped', 0);

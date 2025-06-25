@@ -27,12 +27,8 @@ class CheckoutController extends Controller
         try {
             $cartItems = $this->cart->getItems();
             $totalPrice = $this->cart->totalPrice();
-            
             return view('pages.customer.checkout.index', compact('cartItems', 'totalPrice'));
         } catch (\Exception $e) {
-            // Log the error for debugging
-    
-            // Redirect back with an error message
             return redirect()->back()->with('error', 'Something went wrong while loading the checkout page.');
         }
     }
@@ -60,13 +56,9 @@ class CheckoutController extends Controller
         try {
             $order = $this->checkoutService->processCheckout($validatedData, $cartItems);
             Log::info('Order placed successfully: ' . $order->id);
-            
             Mail::to($order->customer->email)->queue(new OrderPlaced($order));
             return view('pages.customer.products.order-success', compact('order'));
         } catch (\Exception $e) {
-            Log::error('Checkout Error: ' . $e->getMessage());
-            session()->flash('error', 'Something went wrong while placing your order: ' . $e->getMessage());
-            Log::info('Session Data After Flash', session()->all());
             return redirect()->back()->withInput();
         }
     }

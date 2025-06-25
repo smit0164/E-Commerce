@@ -23,7 +23,7 @@
 
         <!-- Super Admin Checkbox -->
         <div class="flex items-center space-x-2">
-            <input type="checkbox" id="is_super_admin" name="is_super_admin" value="yes"
+            <input type="checkbox" id="is_super_admin" name="is_super_admin" value="{{old('is_super_admin')}}"
                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                    {{ old('is_super_admin') === 'yes' ? 'checked' : '' }}>
             <label for="is_super_admin" class="text-sm text-gray-700">Super Admin</label>
